@@ -1,7 +1,6 @@
 from api import db
 from datetime import datetime
 
-
 class User(db.Model):
 
     __tablename__ = "users"
@@ -13,9 +12,9 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
     created = db.Column(db.DateTime, nullable=False)
 
-    recipes = db.relationship("Recipe", backref="users", lazy=True)
+    recipes = db.relationship("Recipe", backref="users", lazy="dynamic")
     recipe_categories = db.relationship(
-        "RecipeCategory", backref="users", lazy=True)
+        "RecipeCategory", backref="users", lazy="dynamic")
 
     def __init__(self, email, fname, lname, password, created=None):
         """ User initializer """
@@ -39,14 +38,15 @@ class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500))
-    category_id = db.Column(db.Integer, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey("recipe_categories.id"), nullable=False)
     image = db.Column(db.String(200))
     privacy = db.Column(db.Integer)
     favourite = db.Column(db.Integer)
     created = db.Column(db.DateTime)
+    edited = db.Column(db.DateTime)
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    def __init__(self, name, description, category_id, owner_id, created=None):
+    def __init__(self, name, description, category_id, owner_id, created=None, edited=None):
         """ Recipe object initializer """
         self.name = name
         self.category_id = category_id
@@ -54,11 +54,15 @@ class Recipe(db.Model):
         self.image = None
         self.privacy = 1
         self.favourite = 0
+
         if created:
             self.created = created
         else:
             self.created = datetime.utcnow()
         self.owner = owner_id
+
+        if edited:
+            self.edited = edited
 
     def __repr__(self):
         """ Recipe object representation"""
@@ -69,14 +73,19 @@ class RecipeCategory(db.Model):
     __tablename__ = "recipe_categories"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    owner = db.Column(db.Integer, db.ForeignKey("users.id"))
-    created = db.Column(db.DateTime)
+    name = db.Column(db.String(200), nullable=False, unique=True)
+    owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created = db.Column(db.DateTime, nullable=False)
+    edited = db.Column(db.DateTime, nullable=True)
+
+    recipes = db.relationship(
+        "Recipe", backref="recipe_category", lazy="dynamic")
 
     def __init__(self, name, owner, created):
         """ RecipeCategory object initializer """
         self.name = name
         self.owner = owner
+
         if created:
             self.created = created
         else:
