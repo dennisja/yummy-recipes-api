@@ -1,5 +1,7 @@
 import re
 
+class ValidationError(KeyError):
+    pass
 
 class Validate:
     def __init__(self):
@@ -50,4 +52,4 @@ class Validate:
             return self.__errors
 
         except KeyError as er:
-            raise KeyError("Error: {}".format(str(er)))
+            raise ValidationError("Validation failure: Check that you sent all the required data and try again")
