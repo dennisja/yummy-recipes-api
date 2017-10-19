@@ -2,6 +2,9 @@ from api import db
 from datetime import datetime
 from api.validator import Validate
 from flask import url_for
+from api.helpers import Secure
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 class User(db.Model):
 
@@ -24,12 +27,24 @@ class User(db.Model):
         self.email = email
         self.firstname = fname
         self.lastname = lname
-        self.password = password,
+        self.password = generate_password_hash(password),
         self.mobile = mobile
         if created:
             self.created = created
         else:
             self.created = datetime.utcnow()
+
+    def set_password(self, password):
+        """ Sets user password to a new password"""
+        self.password = generate_password_hash(password)
+
+    def verify_password(self, password):
+        """
+        Checks if user supplied a correct password
+        :param password: Password user has provided
+        :return: True if password is correct false otherwise
+        """
+        return check_password_hash(self.password, password)
 
     def save_user(self):
         """ saves the current user to the database"""
@@ -40,12 +55,12 @@ class User(db.Model):
     def user_details(self):
         """ Returns the user json representation """
         user_details = {
-            "id":self.id,
+            "id":Secure.encrypt_user_id(self.id),
             "firstname":self.firstname,
             "lastname":self.lastname,
             "email":self.email,
             "mobile":self.mobile,
-            "url": url_for("get_user", id=self.id, _external=True)
+            "url": url_for("get_user", id=Secure.encrypt_user_id(self.id), _external=True)
         }
         return user_details
 
