@@ -27,7 +27,7 @@ class User(db.Model):
         self.email = email
         self.firstname = fname
         self.lastname = lname
-        self.password = generate_password_hash(password),
+        self.set_password(password),
         self.mobile = mobile
         if created:
             self.created = created
