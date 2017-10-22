@@ -15,7 +15,8 @@ class Validate:
             "c_password": "Confirm Password",
             "name": "Name",
             "description": "Description",
-            "category": "Category"
+            "category": "Category",
+            "username": "Email"
         }
 
     def validate_data(self, source, items):
@@ -53,3 +54,54 @@ class Validate:
 
         except KeyError as er:
             raise ValidationError("Validation failure: Check that you sent all the required data and try again")
+
+class ValidateUser():
+    validator = Validate()
+
+    @staticmethod
+    def validate_user_on_reg(user_registration_details):
+        validation_errors = ValidateUser.validator.validate_data(user_registration_details, {
+            "firstname": {
+                "required": True,
+                "max": 20,
+                "no_number": True
+            },
+            "lastname": {
+                "required": True,
+                "max": 20,
+                "no_number": True
+            },
+            "email": {
+                "required": True,
+                "email": True,
+                "min": 8,
+                "max": 100
+            },
+            "password": {
+                "required": True,
+                "min": 8,
+                "max": 20
+            },
+            "c_password": {
+                "matches": "password"
+            }
+        })
+        return validation_errors
+    
+    @staticmethod
+    def validate_user_login(login_details):
+        """ Validates user login details """
+        login_errors = ValidateUser.validator.validate_data(login_details, {
+            "username":{
+                "required":True,
+                "email":True,
+                "min":8,
+                "max":100
+            },
+            "password":{
+                "required":True,
+                "min":8,
+                "max":20
+            }
+        })
+        return login_errors
