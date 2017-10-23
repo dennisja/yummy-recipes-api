@@ -6,8 +6,11 @@ from api.helpers import Secure
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-class User(db.Model):
+class UserNotFoundError(Exception):
+    pass
 
+
+class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -22,7 +25,7 @@ class User(db.Model):
     recipe_categories = db.relationship(
         "RecipeCategory", backref="users", lazy="dynamic")
 
-    def __init__(self, email, fname, lname, password,mobile=None, created=None):
+    def __init__(self, email, fname, lname, password, mobile=None, created=None):
         """ User initializer """
         self.email = email
         self.firstname = fname
@@ -36,7 +39,7 @@ class User(db.Model):
 
     def set_password(self, password):
         """ Sets user password to a new password"""
-        self.password = generate_password_hash(password)
+        self.password = generate_password_hash(password, method="pbkdf2:sha256")
 
     def verify_password(self, password):
         """
@@ -55,57 +58,18 @@ class User(db.Model):
     def user_details(self):
         """ Returns the user json representation """
         user_details = {
-            "id":Secure.encrypt_user_id(self.id),
-            "firstname":self.firstname,
-            "lastname":self.lastname,
-            "email":self.email,
-            "mobile":self.mobile,
+            "id": self.id,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "email": self.email,
+            "mobile": self.mobile,
             "url": url_for("get_user", id=Secure.encrypt_user_id(self.id), _external=True)
         }
         return user_details
 
-
-    @staticmethod
-    def validate_user(user_details):
-        """
-        Validates the submitted user data
-        :param user_details: The user details from the request
-        :return: A list of validation errors spotted in the submitted user data
-        """
-        data_validator = Validate()
-        validation_errors = data_validator.validate_data(user_details, {
-            "firstname": {
-                "required": True,
-                "max": 20,
-                "no_number": True
-            },
-            "lastname": {
-                "required": True,
-                "max": 20,
-                "no_number": True
-            },
-            "email": {
-                "required": True,
-                "email": True,
-                "min": 8,
-                "max": 100
-            },
-            "password": {
-                "required": True,
-                "min": 8,
-                "max": 20
-            },
-            "c_password": {
-                "matches": "password"
-            }
-        })
-
-        return validation_errors
-
-
     def __repr__(self):
         """ User object representation """
-        return "<User {} {} {}>".format(self.id, self.firstname, self.lastname)
+        return f"<User {self.id} {self.firstname} {self.lastname}>"
 
 
 class Recipe(db.Model):
@@ -142,7 +106,7 @@ class Recipe(db.Model):
 
     def __repr__(self):
         """ Recipe object representation"""
-        return "<Recipe {} {}>".format(self.id, self.name)
+        return f"<Recipe {self.id} {self.name}>"
 
 
 class RecipeCategory(db.Model):
@@ -151,8 +115,8 @@ class RecipeCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False, unique=True)
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False)
-    edited = db.Column(db.DateTime, nullable=True)
+    created = db.Column(db.DateTime, nullable=False,)
+    edited = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow())
 
     recipes = db.relationship(
         "Recipe", backref="recipe_category", lazy="dynamic")
@@ -169,4 +133,4 @@ class RecipeCategory(db.Model):
 
     def __repr__(self):
         """ RecipeCategory object representation """
-        return "<RecipeCategory {} {}>".format(self.id, self.name)
+        return f"<RecipeCategory {self.id} {self.name}>"
