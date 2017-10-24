@@ -12,20 +12,20 @@ class TokenError(Exception):
 
 
 class Secure:
-    serializer = URLSafeSerializer(app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
-    __timed_serilizer = TimedSerializer(app.config["SECRET_KEY"], expires_in=3600)
+    __serializer = URLSafeSerializer(app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
+    __timed_serializer = TimedSerializer(app.config["SECRET_KEY"], expires_in=3600)
 
     @staticmethod
     def encrypt_user_id(id):
-        return Secure.serializer.dumps(id)
+        return Secure.__serializer.dumps(id)
 
     @staticmethod
     def decrypt_user_id(encrypted_id):
-        return Secure.serializer.loads(encrypted_id)
+        return Secure.__serializer.loads(encrypted_id)
 
     @staticmethod
     def generate_auth_token(user_id):
-        return base64_encode(Secure.__timed_serilizer.dumps({"id": user_id})).decode("utf-8")
+        return base64_encode(Secure.__timed_serializer.dumps({"id": user_id})).decode("utf-8")
 
     @staticmethod
     def decrypt_auth_token(token):
@@ -35,7 +35,7 @@ class Secure:
         :return: The dictionary containing the id of the logged in user
         """
         try:
-            return Secure.__timed_serilizer.loads(base64_decode(token.encode("utf-8")))
+            return Secure.__timed_serializer.loads(base64_decode(token.encode("utf-8")))
         except SignatureExpired:
             raise TokenExpiredError("The token has expired")
         except:
