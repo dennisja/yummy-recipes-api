@@ -1,4 +1,4 @@
-from api import app
+from api import app, db
 from api.models import User, Recipe, RecipeCategory
 import unittest
 
@@ -6,9 +6,22 @@ import unittest
 class ApiBasicsTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        self.app.config[
+            "SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes"
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
 
     def test_app_is_not_null(self):
         self.assertTrue(self.app is not None)
+
+    def test_app_is_using_test_database(self):
+        self.assertEqual(self.app.config["SQLALCHEMY_DATABASE_URI"], "postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes")
 
 
 class UserModelTestCase(unittest.TestCase):
