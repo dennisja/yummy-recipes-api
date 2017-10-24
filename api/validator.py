@@ -1,7 +1,9 @@
 import re
 
+
 class ValidationError(KeyError):
     pass
+
 
 class Validate:
     def __init__(self):
@@ -16,7 +18,10 @@ class Validate:
             "name": "Name",
             "description": "Description",
             "category": "Category",
-            "username": "Email"
+            "username": "Email",
+            "current_password": "Current Password",
+            "new_password": "New Password",
+            "new_password_again": "Retyped New Password"
         }
 
     def validate_data(self, source, items):
@@ -50,17 +55,24 @@ class Validate:
                             self.__errors.append(
                                 "{} is invalid".format(self.__display[item]))
 
+                        if each_rule == "not_equal_to" and each_rule_value in source and value == source[
+                            each_rule_value]:
+                            self.__errors.append(
+                                f"{self.__display[each_rule_value]} must not be equal to {self.__display[item]}")
+
             return self.__errors
 
         except KeyError as er:
             raise ValidationError("Validation failure: Check that you sent all the required data and try again")
 
+
 class ValidateUser():
     validator = Validate()
 
     @staticmethod
-    def validate_user_on_reg(user_registration_details):
-        validation_errors = ValidateUser.validator.validate_data(user_registration_details, {
+    def validate_user_on_reg(user_registration_details, action="create"):
+        """ Action to perform on a user"""
+        rules = {
             "firstname": {
                 "required": True,
                 "max": 20,
@@ -85,23 +97,51 @@ class ValidateUser():
             "c_password": {
                 "matches": "password"
             }
-        })
+        }
+
+        # remove password and c-password when editing user data
+        if action == "edit":
+            rules.pop("password")
+            rules.pop("c_password")
+
+        validation_errors = ValidateUser.validator.validate_data(user_registration_details, rules)
         return validation_errors
-    
+
     @staticmethod
     def validate_user_login(login_details):
         """ Validates user login details """
         login_errors = ValidateUser.validator.validate_data(login_details, {
-            "username":{
-                "required":True,
-                "email":True,
-                "min":8,
-                "max":100
+            "username": {
+                "required": True,
+                "email": True,
+                "min": 8,
+                "max": 100
             },
-            "password":{
-                "required":True,
-                "min":8,
-                "max":20
+            "password": {
+                "required": True,
+                "min": 8,
+                "max": 20
             }
         })
         return login_errors
+
+    @staticmethod
+    def validate_password_data(user_data):
+        """ Validates user data submitted when changing a password """
+        password_errors = ValidateUser.validator.validate_data(user_data, {
+            "current_password": {
+                "required": True,
+                "min": 8,
+                "max": 20
+            },
+            "new_password": {
+                "required": True,
+                "min": 8,
+                "max": 20,
+                "not_equal_to": "current_password"
+            },
+            "new_password_again": {
+                "matches": "new_password"
+            }
+        })
+        return password_errors
