@@ -1,6 +1,5 @@
 from api import db
 from datetime import datetime
-from api.validator import Validate
 from flask import url_for
 from api.helpers import Secure
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,23 +18,19 @@ class User(db.Model):
     firstname = db.Column(db.String(20), nullable=False)
     lastname = db.Column(db.String(20), nullable=False)
     password = db.Column(db.String(128), nullable=False)
-    created = db.Column(db.DateTime, nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
 
-    recipes = db.relationship("Recipe", backref="users", lazy="dynamic")
+    recipes = db.relationship("Recipe", backref="creator", lazy="dynamic")
     recipe_categories = db.relationship(
-        "RecipeCategory", backref="users", lazy="dynamic")
+        "RecipeCategory", backref="creator", lazy="dynamic")
 
-    def __init__(self, email, fname, lname, password, mobile=None, created=None):
+    def __init__(self, email, fname, lname, password, mobile=None):
         """ User initializer """
         self.email = email
         self.firstname = fname
         self.lastname = lname
         self.set_password(password),
         self.mobile = mobile
-        if created:
-            self.created = created
-        else:
-            self.created = datetime.utcnow()
 
     def set_password(self, password):
         """ Sets user password to a new password"""
@@ -77,32 +72,56 @@ class Recipe(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.String(500))
+    steps = db.Column(db.String(1000))
+    ingredients = db.Column(db.String(500))
     category_id = db.Column(db.Integer, db.ForeignKey("recipe_categories.id"), nullable=False)
     image = db.Column(db.String(200))
-    privacy = db.Column(db.Integer)
-    favourite = db.Column(db.Integer)
-    created = db.Column(db.DateTime)
-    edited = db.Column(db.DateTime)
+    privacy = db.Column(db.Integer, default=1)
+    favourite = db.Column(db.Integer, default=0)
+    created = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    edited = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp(),
+                       onupdate=db.func.current_timestamp())
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    def __init__(self, name, description, category_id, owner_id, created=None, edited=None):
+    def __init__(self, name, steps, ingredients, category_id, owner_id):
         """ Recipe object initializer """
         self.name = name
+        self.steps = steps
+        self.ingredients = ingredients
         self.category_id = category_id
-        self.description = description
-        self.image = None
-        self.privacy = 1
-        self.favourite = 0
-
-        if created:
-            self.created = created
-        else:
-            self.created = datetime.utcnow()
         self.owner = owner_id
+        self.image = None
 
-        if edited:
-            self.edited = edited
+    @property
+    def recipe_details(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "steps": self.steps,
+            "ingredients": self.ingredients,
+            "category": self.recipe_category.recipe_cat_details,
+            "image": self.image,
+            "privacy": self.privacy,
+            "favourite": self.favourite,
+            "created": self.created,
+            "edited": self.edited,
+            "url": url_for("get_recipe", recipe_id=self.id, _external=True)
+        }
+
+    def save_recipe(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete_recipe(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def edit_recipe(self, recipe_data):
+        self.name = recipe_data.get("name", default=self.name)
+        self.steps = recipe_data.get("steps", default=self.steps)
+        self.ingredients = recipe_data.get("ingredients", default=self.ingredients)
+        self.category_id = recipe_data.get("category", default=self.category_id)
+        db.session.commit()
 
     def __repr__(self):
         """ Recipe object representation"""
@@ -113,23 +132,38 @@ class RecipeCategory(db.Model):
     __tablename__ = "recipe_categories"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False, unique=True)
+    name = db.Column(db.String(200), nullable=False)
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False,)
-    edited = db.Column(db.DateTime, nullable=True, onupdate=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    edited = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp(),
+                       onupdate=db.func.current_timestamp())
 
     recipes = db.relationship(
         "Recipe", backref="recipe_category", lazy="dynamic")
 
-    def __init__(self, name, owner, created):
+    def __init__(self, name, owner):
         """ RecipeCategory object initializer """
         self.name = name
         self.owner = owner
 
-        if created:
-            self.created = created
-        else:
-            self.created = datetime.utcnow()
+    def save_recipe_cat(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete_recipe_cat(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @property
+    def recipe_cat_details(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "owner_details": self.creator.user_details,
+            "created": self.created,
+            "edited": self.edited,
+            "url": url_for("get_recipe_category", category_id=self.id, _external=True)
+        }
 
     def __repr__(self):
         """ RecipeCategory object representation """
