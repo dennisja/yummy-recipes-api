@@ -22,7 +22,9 @@ class Validate:
             "current_password": "Current Password",
             "new_password": "New Password",
             "new_password_again": "Retyped New Password",
-            "cat_name": "Category Name"
+            "cat_name": "Category Name",
+            "steps": "Steps",
+            "ingredients": "Ingredients"
         }
 
     def validate_data(self, source, items):
@@ -39,6 +41,9 @@ class Validate:
                         if each_rule == "min" and len(value) < each_rule_value:
                             self.__errors.append(
                                 "{} must be a minimum of {} characters".format(self.__display[item], each_rule_value))
+
+                        if each_rule == "numeric" and not str(value).isdecimal():
+                            self.__errors.append(f"{self.__display[item]} must be a number")
 
                         if each_rule == "max" and len(value) > each_rule_value:
                             self.__errors.append(
@@ -159,6 +164,35 @@ class ValidateRecipeCategory:
                 "no_number": True,
                 "min": 3,
                 "max": 200
+            }
+        })
+        return recipe_errors
+
+
+class ValidateRecipe:
+    __validator = Validate()
+
+    @staticmethod
+    def validate_recipe(recipe_data):
+        recipe_errors = ValidateRecipe.__validator.validate_data(recipe_data, {
+            "name": {
+                "required": True,
+                "min": 3,
+                "max": 200
+            },
+            "steps": {
+                "required": True,
+                "min": 10,
+                "max": 1000
+            },
+            "ingredients": {
+                "required": True,
+                "min": 10,
+                "max": 500
+            },
+            "category": {
+                "required": True,
+                "numeric": True
             }
         })
         return recipe_errors
