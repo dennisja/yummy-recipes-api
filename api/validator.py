@@ -21,7 +21,8 @@ class Validate:
             "username": "Email",
             "current_password": "Current Password",
             "new_password": "New Password",
-            "new_password_again": "Retyped New Password"
+            "new_password_again": "Retyped New Password",
+            "cat_name": "Category Name"
         }
 
     def validate_data(self, source, items):
@@ -145,3 +146,19 @@ class ValidateUser():
             }
         })
         return password_errors
+
+
+class ValidateRecipeCategory:
+    __validator = Validate()
+
+    @staticmethod
+    def validate_recipe(recipe_data):
+        recipe_errors = ValidateRecipeCategory.__validator.validate_data(recipe_data, {
+            "cat_name": {
+                "required": True,
+                "no_number": True,
+                "min": 3,
+                "max": 200
+            }
+        })
+        return recipe_errors
