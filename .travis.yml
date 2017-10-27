@@ -7,4 +7,7 @@ python:
   - pip install -r requirements.txt
 
 script:
+  - python migrate.py db init
+  - python migrate.py db migrate
+  - python migrate.py db upgrade
   - python tests.py
