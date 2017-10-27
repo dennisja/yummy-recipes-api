@@ -4,5 +4,4 @@ api/__pycache__
 .idea
 .vscode
 venv
-migrations
 venv/
