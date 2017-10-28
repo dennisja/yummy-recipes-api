@@ -303,14 +303,21 @@ def get_recipe(user, recipe_id):
 def edit_user_details(user):
     """ Updates user details """
     # validate user data
-    edit_errors = ValidateUser.validate_user_on_reg(request.json, action="edit")
+    user_data = request.get_json()
+    edit_errors = ValidateUser.validate_user_on_reg(user_data, action="edit")
 
     if edit_errors:
         return jsonify({"errors": edit_errors}), 400
 
-    user.email = request.json.get("email")
-    user.firstname = request.json.get("firstname")
-    user.lastname = request.json.get("lastname")
+    # check whether email user is changing to is already taken
+    email_in_use = models.User.query.filter_by(email=user_data["email"]).first()
+
+    if email_in_use and email_in_use.id != user.id:
+        return jsonify({"errors": [f"The email \'{user_data['email']}\' is already in use"]}), 400
+
+    user.email = user_data.get("email")
+    user.firstname = user_data.get("firstname")
+    user.lastname = user_data.get("lastname")
 
     db.session.commit()
     return jsonify({"message": "All changes where applied successfully"}), 200, {"Location": user.user_details["url"]}
