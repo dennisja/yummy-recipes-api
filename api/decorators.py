@@ -9,7 +9,7 @@ def json_data_required(decorated_func):
 
     @wraps(decorated_func)
     def wrapper(*args, **kwargs):
-        if not request.json:
+        if not request.get_json():
             return jsonify(
                 {"errors": ["Request body is absent, Make sure you are sending json data and try again"]}), 400
         return decorated_func(*args, **kwargs)
