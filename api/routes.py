@@ -9,24 +9,25 @@ from itsdangerous import BadSignature
 @app.route("/yummy/api/v1.0/auth/register/", methods=["POST"])
 def register_user():
     """ Registers a yummy recipes user """
-    if not request.json:
+    if not request.get_json():
         abort(400)
 
+    request_data = request.get_json()
     # validate the user
-    validation_errors = ValidateUser.validate_user_on_reg(request.json)
+    validation_errors = ValidateUser.validate_user_on_reg(request_data)
 
     # check if errors occurred
     if validation_errors:
         return jsonify({"errors": validation_errors}), 422
 
     # check if user already exists
-    existing_user = models.User.query.filter_by(email=request.json["email"]).first()
+    existing_user = models.User.query.filter_by(email=request_data["email"]).first()
     if existing_user:
-        return jsonify({"errors": ["Email address '{}' already in use".format(request.json["email"])]}), 422
+        return jsonify({"errors": [f"Email address \'{request_data['email']}\' already in use"]}), 422
 
     # register the user
-    user = models.User(request.json["email"], request.json["firstname"],
-                       request.json["lastname"], request.json["password"])
+    user = models.User(request_data["email"], request_data["firstname"],
+                       request_data["lastname"], request_data["password"])
     user.save_user()
 
     return jsonify(
@@ -292,7 +293,7 @@ def get_recipe(user, recipe_id):
     if not recipe:
         return jsonify({"errors": ["the recipe you are trying to look for does not exist"]})
 
-    return jsonify({"recipe": recipe.recipe_details, "message":"Recipe exists"}), 200
+    return jsonify({"recipe": recipe.recipe_details, "message": "Recipe exists"}), 200
 
 
 # user end points
@@ -366,7 +367,7 @@ def not_found_error(error):
 @app.errorhandler(400)
 def bad_request(error):
     """ Handles Bad Request Errors """
-    return make_response(jsonify({"errors": ["Request not Understood"]}), 404)
+    return make_response(jsonify({"errors": ["Request not Understood"]}), 400)
 
 
 @app.errorhandler(401)

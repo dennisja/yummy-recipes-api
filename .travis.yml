@@ -8,6 +8,6 @@ python:
 
 services:
   - postgresql
-  
+
 script:
   - python tests.py
