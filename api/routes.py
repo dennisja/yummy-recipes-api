@@ -329,15 +329,15 @@ def edit_user_details(user):
 def change_user_password(user):
     """ Changes a user password """
     # validate sent data
-    password_errors = ValidateUser.validate_password_data(request.json)
+    password_errors = ValidateUser.validate_password_data(request.get_json())
 
     if password_errors:
         return jsonify({"errors": password_errors}), 400
 
-    if not user.verify_password(request.json.get("current_password")):
+    if not user.verify_password(request.get_json().get("current_password")):
         return jsonify({"errors": ["The current password supplied is wrong"]}), 403
 
-    user.set_password(request.json.get("new_password"))
+    user.set_password(request.get_json().get("new_password"))
     db.session.commit()
 
     # change the password if no error has occurred
