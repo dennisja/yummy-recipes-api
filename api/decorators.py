@@ -1,7 +1,8 @@
-from functools import wraps
+from functools import wraps, update_wrapper
 from api.helpers import Secure
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from api.models import User, Recipe, RecipeCategory
+from datetime import datetime
 
 
 def json_data_required(decorated_func):
@@ -97,3 +98,17 @@ def user_must_own_recipe_category(decorated_func):
         return decorated_func(user, recipe_category, *args, **kwargs)
 
     return wrapper
+
+
+def dont_cache_response(decorated_func):
+    """ Ensures that the response is not cached """
+    @wraps(decorated_func)
+    def wrapper(*args, **kwargs):
+        response = make_response(decorated_func(*args, **kwargs))
+        response.headers["Last-Modified"] = datetime.now()
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "-1"
+        return response
+
+    return update_wrapper(wrapper, decorated_func)
