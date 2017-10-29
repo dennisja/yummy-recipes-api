@@ -1,7 +1,7 @@
 from api import app, models, db
 from api.helpers import Secure, TokenError, TokenExpiredError
 from api.validator import ValidationError, ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
-from api.decorators import auth_token_required, json_data_required, user_must_own_recipe
+from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
 from flask import make_response, jsonify, abort, request, url_for
 from itsdangerous import BadSignature
 
@@ -68,19 +68,20 @@ def login_user():
 def add_recipe_category(user):
     """ Adds a recipe category """
     # validate submitted recipe category details
-    recipe_errors = ValidateCat.validate_recipe(request.json)
+    recipe_cat_data = request.get_json()
+    recipe_errors = ValidateCat.validate_recipe(recipe_cat_data)
 
     if recipe_errors:
         return jsonify({"errors": recipe_errors}), 400
 
     # check whether a recipe category name by the same already exists
-    existing_recipe = models.RecipeCategory.query.filter_by(name=request.json.get("cat_name"), owner=user.id).first()
+    existing_recipe = models.RecipeCategory.query.filter_by(name=recipe_cat_data.get("cat_name"), owner=user.id).first()
 
     if existing_recipe:
         return jsonify({"errors": ["The Recipe Category you are trying to add already exists"]}), 400
 
     # create the recipe category
-    recipe = models.RecipeCategory(request.json.get("cat_name"), user.id)
+    recipe = models.RecipeCategory(recipe_cat_data.get("cat_name"), user.id)
     recipe.save_recipe_cat()
 
     return jsonify({"message": "Successfully created recipe category", "recipe_cat": recipe.recipe_cat_details}), 201, {
@@ -90,31 +91,25 @@ def add_recipe_category(user):
 @app.route("/yummy/api/v1.0/recipe_categories/<int:category_id>", methods=["PUT"])
 @json_data_required
 @auth_token_required
-def edit_recipe_category(user, category_id):
+@user_must_own_recipe_category
+def edit_recipe_category(user, recipe_cat, category_id):
     """ Edits a recipe category """
-    recipe_cat_errors = ValidateCat.validate_recipe(request.json)
+    recipe_cat_data = request.get_json()
+    recipe_cat_errors = ValidateCat.validate_recipe(recipe_cat_data)
     if recipe_cat_errors:
         return jsonify({"errors": recipe_cat_errors}), 400
 
-    recipe_cat = models.RecipeCategory.query.filter_by(id=category_id).first()
-
-    if not recipe_cat:
-        return jsonify({"errors": ["The recipe you are trying to edit does not exist"]}), 404
-
-    if recipe_cat.owner != user.id:
-        return jsonify({"errors": ["The recipe category you are trying to edit doesnot belong to you"]}), 403
-
-    existing_recipe_cat = models.RecipeCategory.query.filter_by(name=request.json.get("cat_name"),
+    existing_recipe_cat = models.RecipeCategory.query.filter_by(name=recipe_cat_data.get("cat_name"),
                                                                 owner=user.id).first()
 
     if existing_recipe_cat and existing_recipe_cat.id != category_id:
         return jsonify({"errors": ["The new recipe category name you are trying to use already exists"]}), 400
 
-    if request.json.get("cat_name") == recipe_cat.name:
+    if recipe_cat_data.get("cat_name") == recipe_cat.name:
         return jsonify({"message": "Recipe category name is similar to the previous. No changes where made"}), 200
 
     # edit the recipe
-    recipe_cat.name = request.json.get("cat_name")
+    recipe_cat.name = recipe_cat_data.get("cat_name")
     db.session.commit()
 
     return jsonify({"message": "Successfully edited recipe category", "recipe_cat": recipe_cat.recipe_cat_details}), 200
@@ -122,17 +117,9 @@ def edit_recipe_category(user, category_id):
 
 @app.route("/yummy/api/v1.0/recipe_categories/<int:category_id>", methods=["DELETE"])
 @auth_token_required
-def delete_recipe_category(user, category_id):
+@user_must_own_recipe_category
+def delete_recipe_category(user, recipe_cat, category_id):
     """ Deletes a recipe category """
-    # look for the recipe category
-    recipe_cat = models.RecipeCategory.query.filter_by(id=category_id).first()
-    if not recipe_cat:
-        return jsonify({"errors": ["The recipe you are trying to delete does not exist"]}), 404
-
-    # check if the user trying to delete the recipe is the owner of the recipe category
-    if recipe_cat.owner != user.id:
-        return jsonify({"errors": ["The recipe category you are trying to delete does not belong to you"]}), 403
-
     # delete the recipe category and all its recipes
     recipe_cat.delete_recipe_cat()
     # TODO: come back to delete all recipes in a recipe category
@@ -181,12 +168,13 @@ def get_all_recipes_in_a_category(user, category_id):
 def add_recipe(user):
     """ Adds a recipe """
     # validate recipe data
-    recipe_errors = ValidateRecipe.validate_recipe(request.json)
+    recipe_data = request.get_json()
+    recipe_errors = ValidateRecipe.validate_recipe(recipe_data)
     if recipe_errors:
         return jsonify({"errors": recipe_errors}), 400
 
     # check if the supplied recipe category exists
-    recipe_cat = models.RecipeCategory.query.filter_by(id=request.json.get("category")).first()
+    recipe_cat = models.RecipeCategory.query.filter_by(id=recipe_data.get("category")).first()
     if not recipe_cat:
         return jsonify({"errors": ["Trying to add a recipe to a category that does not exist"]}), 404
 
@@ -194,15 +182,14 @@ def add_recipe(user):
         return jsonify({"errors": ["Trying to add a recipe to a category that does not belong to you"]}), 403
 
     # check if a recipe with the same name exists in the same category and by the same user
-    recipe_exists = models.Recipe.query.filter_by(name=request.json.get("name"), owner=user.id,
-                                                  category_id=request.json.get("category")).first()
+    recipe_exists = models.Recipe.query.filter_by(name=recipe_data.get("name"), owner=user.id,
+                                                  category_id=recipe_data.get("category")).first()
     if recipe_exists:
         return jsonify(
             {"errors": ["A recipe with the same name, by the same user already exists in the same category"],
              "existing_recipe": recipe_exists.recipe_details}), 400
 
     # add the recipe
-    recipe_data = request.json
     recipe = models.Recipe(recipe_data.get("name"), recipe_data.get("steps"), recipe_data.get("ingredients"),
                            recipe_data.get("category"), user.id)
     recipe.save_recipe()
@@ -226,16 +213,14 @@ def edit_a_recipe(user, recipe, recipe_id):
     if not str(recipe_id).isnumeric():
         return jsonify({"errors": ["Invalid recipe Id"]}), 400
 
-    if not recipe:
-        abort(404)
-
+    recipe_data = request.get_json()
     # validate submitted data
-    recipe_errors = ValidateRecipe.validate_recipe(request.json)
+    recipe_errors = ValidateRecipe.validate_recipe(recipe_data)
     if recipe_errors:
         return jsonify({"errors": recipe_errors}), 400
 
     # check if the supplied recipe category exists
-    recipe_cat = models.RecipeCategory.query.filter_by(id=request.json.get("category")).first()
+    recipe_cat = models.RecipeCategory.query.filter_by(id=recipe_data.get("category")).first()
     if not recipe_cat:
         return jsonify({"errors": ["Trying to move a recipe to a category that does not exist"]}), 404
 
@@ -243,8 +228,8 @@ def edit_a_recipe(user, recipe, recipe_id):
         return jsonify({"errors": ["Trying to move a recipe to a category that does not belong to you"]}), 403
 
     # check whether the new name does not belong to any other recipe by the same user in the same category
-    recipe_exists = models.Recipe.query.filter_by(name=request.json.get("name"), owner=user.id,
-                                                  category_id=request.json.get("category")).first()
+    recipe_exists = models.Recipe.query.filter_by(name=recipe_data.get("name"), owner=user.id,
+                                                  category_id=recipe_data.get("category")).first()
 
     if recipe_exists and recipe_exists.id != recipe_id:
         return jsonify(
@@ -252,7 +237,7 @@ def edit_a_recipe(user, recipe, recipe_id):
              "existing_recipe": recipe_exists.recipe_details}), 400
 
     # edit the recipe
-    recipe.edit_recipe(request.json)
+    recipe.edit_recipe(recipe_data)
 
     return jsonify({"message": "Successfully edited recipe", "recipe": recipe.recipe_details}), 200
 
