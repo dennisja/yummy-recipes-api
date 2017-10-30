@@ -31,7 +31,7 @@ class Validate:
         try:
             for each_item, each_item_rules in items.items():
                 for each_rule, each_rule_value in each_item_rules.items():
-                    value = source[each_item].strip()
+                    value = str(source[each_item]).strip()
                     item = each_item
 
                     if each_rule == "required" and not len(value):
