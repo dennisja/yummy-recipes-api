@@ -117,10 +117,10 @@ class Recipe(db.Model):
         db.session.commit()
 
     def edit_recipe(self, recipe_data):
-        self.name = recipe_data.get("name", default=self.name)
-        self.steps = recipe_data.get("steps", default=self.steps)
-        self.ingredients = recipe_data.get("ingredients", default=self.ingredients)
-        self.category_id = recipe_data.get("category", default=self.category_id)
+        self.name = recipe_data.get("name",self.name)
+        self.steps = recipe_data.get("steps",self.steps)
+        self.ingredients = recipe_data.get("ingredients", self.ingredients)
+        self.category_id = recipe_data.get("category",self.category_id)
         db.session.commit()
 
     def __repr__(self):
