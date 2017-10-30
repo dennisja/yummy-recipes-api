@@ -209,9 +209,6 @@ def edit_a_recipe(user, recipe, recipe_id):
     :param recipe_id: The recipe id
     :return:
     """
-    # check if recipe exists
-    if not str(recipe_id).isnumeric():
-        return jsonify({"errors": ["Invalid recipe Id"]}), 400
 
     recipe_data = request.get_json()
     # validate submitted data
