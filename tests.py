@@ -677,6 +677,57 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.kwargs["headers"] = {"x-access-token": login_token}
         return self.test_client().post("/yummy/api/v1.0/recipes/", **self.kwargs)
 
+
+    def test_can_search_recipes_users_and_categories(self):
+        # login and register two users
+        login_responses = [self.register_and_login_user(),
+                           self.register_and_login_user(self.user_details2, self.login_details2)]
+        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        # create some recipe categories
+        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        # create some recipes
+        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+
+        # test to see if search is successful
+        response = self.test_client().get("/yummy/api/v1.0/search?q=a&page=1")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("recipes", response.data.decode())
+        self.assertIn("recipe_categories", response.data.decode())
+        self.assertIn("users", response.data.decode())
+        self.assertIn(self.user_details1["email"], response.data.decode())
+        self.assertIn(self.sample_categories[0]["name"], response.data.decode())
+        self.assertIn(self.sample_recipes[0]["name"], response.data.decode())
+
+    def test_search_fails_when_q_param_is_missing(self):
+        # login and register two users
+        login_responses = [self.register_and_login_user(),
+                           self.register_and_login_user(self.user_details2, self.login_details2)]
+        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        # create some recipe categories
+        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        # create some recipes
+        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+
+        # test to see if search is successful
+        response = self.test_client().get("/yummy/api/v1.0/search?page=1")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Check that you have supplied the search term and try again", response.data.decode())
+
+    def test_search_fails_when_all_get_param_are_missing(self):
+        # login and register two users
+        login_responses = [self.register_and_login_user(),
+                           self.register_and_login_user(self.user_details2, self.login_details2)]
+        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        # create some recipe categories
+        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        # create some recipes
+        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+
+        # test to see if search is successful
+        response = self.test_client().get("/yummy/api/v1.0/search")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Check that you have supplied the required data and try again", response.data.decode())
+
     def create_recipe_category(self, recipe_cat_details, login_token):
         self.kwargs["data"] = json.dumps(recipe_cat_details)
         self.kwargs["headers"] = {"x-access-token": login_token}
