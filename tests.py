@@ -695,7 +695,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertIn("recipe_categories", response.data.decode())
         self.assertIn("users", response.data.decode())
         self.assertIn(self.user_details1["email"], response.data.decode())
-        self.assertIn(self.sample_categories[0]["name"], response.data.decode())
+        self.assertIn(self.sample_categories[0]["cat_name"], response.data.decode())
         self.assertIn(self.sample_recipes[0]["name"], response.data.decode())
 
     def test_search_fails_when_q_param_is_missing(self):
@@ -726,7 +726,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         # test to see if search is successful
         response = self.test_client().get("/yummy/api/v1.0/search")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Check that you have supplied the required data and try again", response.data.decode())
+        self.assertIn("Check that you have supplied all the required data and try again", response.data.decode())
 
     def create_recipe_category(self, recipe_cat_details, login_token):
         self.kwargs["data"] = json.dumps(recipe_cat_details)

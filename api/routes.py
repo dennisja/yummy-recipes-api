@@ -4,6 +4,7 @@ from api.validator import ValidationError, ValidateUser, ValidateRecipeCategory 
 from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
 from flask import make_response, jsonify, abort, request, url_for
 from itsdangerous import BadSignature
+from sqlalchemy import or_
 
 
 @app.route("/yummy/api/v1.0/auth/register/", methods=["POST"])
@@ -344,6 +345,51 @@ def get_user(id):
         user = models.User.query.filter_by(id=user_id).first_or_404()
         return jsonify({"data": user.user_details})
     abort(400)
+
+
+# search end point
+@app.route("/yummy/api/v1.0/search")
+def search():
+    if not request.args:
+        return jsonify({"errors": ["Check that you have supplied all the required data and try again"]}), 400
+
+    if "q" not in request.args:
+        return jsonify({"errors": ["Check that you have supplied the search term and try again"]}), 400
+
+    search_term = request.args.get("q")
+    search_terms = str(search_term).strip().split()
+
+    if not search_terms:
+        return jsonify({"errors": ["Search term is empty"]}), 400
+
+    user_conditions = [models.User.firstname.like(f"%{term}%") for term in search_terms] + [
+        models.User.lastname.like(f"%{term}%") for term in search_terms] + [models.User.email.like(f"%{term}%") for term
+                                                                            in search_terms]
+    recipe_conditions = [models.Recipe.name.like(f"%{term}%") for term in search_terms] + [
+        models.Recipe.steps.like(f"%{term}%") for term in search_terms] + [models.Recipe.ingredients.like(f"%{term}%")
+                                                                           for term in search_terms]
+    category_conditions = [models.RecipeCategory.name.like(f"%{term}%") for term in search_terms]
+
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 5))
+    max_per_page = 20
+    users = models.User.query.filter(or_(*user_conditions)).paginate(page, per_page, False)
+    recipes = models.Recipe.query.filter(or_(*recipe_conditions)).paginate(page, per_page, False)
+    categories = models.RecipeCategory.query.filter(or_(*category_conditions)).paginate(page, per_page, False)
+
+    response_body = {"users": [each_user.user_details for each_user in users.items],
+                     "recipes": [each_recipe.recipe_details for each_recipe in recipes.items],
+                     "categories": [each_cat.recipe_cat_details for each_cat in categories.items],
+                     "users_count": users.total,
+                     "recipes_count": recipes.total,
+                     "categories_count": categories.total,
+                     "total_results": users.total + recipes.total + categories.total,
+                     "search_term": search_term
+                     }
+    if page > 1:
+        response_body["previous_page"] = page - 1
+
+    return jsonify(response_body), 200
 
 
 # error handlers
