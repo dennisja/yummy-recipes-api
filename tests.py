@@ -3,6 +3,7 @@ from api.models import User, Recipe, RecipeCategory
 import unittest
 import json
 from base64 import b64encode
+from config import configs
 
 
 class ApiBasicsTestCase(unittest.TestCase):
@@ -11,8 +12,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         self.test_client = app.test_client
-        self.app.config[
-            "SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes"
+        self.app.config.from_object(configs.get("testing"))
         db.create_all()
 
         # data to use when testing user registration and login
@@ -38,8 +38,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertTrue(self.app is not None)
 
     def test_app_is_using_test_database(self):
-        self.assertEqual(self.app.config["SQLALCHEMY_DATABASE_URI"],
-                         "postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes")
+        self.assertTrue(self.app.config["TESTING"])
+        self.assertTrue(self.app.config["DEBUG"])
 
     def test_user_registration_fails_if_no_data_is_sent(self):
         response = self.test_client().post("/yummy/api/v1.0/auth/register/")
