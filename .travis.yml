@@ -2,8 +2,8 @@ language: python
 
 env:
   global:
-  # code climate test-reporter token
-    - CC_TEST_REPORTER_ID=9a90edf9d2b92f5171dc75efb10af3aaa616cf5d76d96152e2b4624a46e0f11e
+  - YUMMY_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes
+  - YUMMY_SECRET_KEY="The secret key you prefer"
 python:
   - 3.6
 
@@ -19,13 +19,6 @@ script:
 before_script:
   - psql -c "CREATE DATABASE test_yummy_recipes;" -U postgres
   - psql -c "ALTER USER postgres WITH PASSWORD 'mypassword';" -U postgres
-  # getting code climate test reporter
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
 
 after_success:
   - coveralls
-
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
