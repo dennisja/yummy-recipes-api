@@ -1,4 +1,5 @@
 from api import app, db
+from api.validator import Validate, ValidationError
 from api.models import User, Recipe, RecipeCategory
 import unittest
 import json
@@ -209,7 +210,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         # try using an invalid public id
         response = self.test_client().get("/yummy/api/v1.0/users/1/")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Request not understood", response.data.decode())
+        self.assertIn("Request not Understood", response.data.decode())
 
         # register a user
         reg_response = self.register_user(self.user_details1)
@@ -796,6 +797,46 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(user1.password != user2.password)
         self.assertFalse(user2.password == user1.password)
 
+class ValidatorTestCases(unittest.TestCase):
+    def setUp(self):
+        self.validator = Validate()
 
+    def test_empty_required_submitted_value(self):
+        form_data = {"lastname": ""}
+        rules = {"lastname": {
+            "required": True
+        }}
+        self.assertTrue(self.validator.validate_data(form_data, rules))
+
+    def test_no_number_in_submitted_value(self):
+        form_data = {"lastname": "d56"}
+        rules = {"lastname": {
+            "no_number": True
+        }}
+        self.assertTrue(self.validator.validate_data(form_data, rules))
+
+    def test_min_length_of_submitted_value(self):
+        form_data = {"lastname": "den"}
+        rules = {"lastname": {
+            "min": 6
+        }}
+        self.assertTrue(self.validator.validate_data(form_data, rules))
+
+    def test_max_length_of_submitted_value(self):
+        form_data = {"lastname": "denhhhhh"}
+        rules = {"lastname": {
+            "max": 6
+        }}
+        self.assertTrue(self.validator.validate_data(form_data, rules))
+
+    def test_invalid_key_from_in_user_data(self):
+        form_data = {
+            "absent_key": ""
+        }
+        rules = {"absent_key": {
+            "required": True
+        }}
+        self.assertRaises(KeyError, self.validator.validate_data,
+                          source=form_data, items=rules)
 if __name__ == "__main__":
     unittest.main()

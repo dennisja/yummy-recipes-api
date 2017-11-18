@@ -400,6 +400,7 @@ def not_found_error(error):
 
 
 @app.errorhandler(400)
+@app.errorhandler(BadSignature)
 def bad_request(error):
     """ Handles Bad Request Errors """
     return make_response(jsonify({"errors": ["Request not Understood"]}), 400)
@@ -421,11 +422,6 @@ def permission_denied(error):
 def handle_validation_failure(error):
     """ Handles failure of validation of sent data, in case some keys are missing """
     return make_response(jsonify({"errors": [error.args[0]]}), 400)
-
-
-@app.errorhandler(BadSignature)
-def handle_invalid_user_ids(error):
-    return make_response(jsonify({"errors": ["Request not understood"]}), 400)
 
 
 @app.errorhandler(models.UserNotFoundError)

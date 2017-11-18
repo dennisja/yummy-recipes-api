@@ -15,3 +15,6 @@ script:
 before_script:
   - psql -c "CREATE DATABASE test_yummy_recipes;" -U postgres
   - psql -c "ALTER USER postgres WITH PASSWORD 'mypassword';" -U postgres
+
+after_success:
+  - coveralls
