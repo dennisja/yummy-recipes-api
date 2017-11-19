@@ -28,7 +28,7 @@ class TestingConfig(Config):
 
 class ProductConfig(Config):
     """ Has configuration for use during Production """
-    pass
+    SQLALCHEMY_DATABASE_URI = os.environ.get(DATABASE_URL)
 
 
 configs = {
