@@ -17,12 +17,15 @@ class ApiBasicsTestCase(unittest.TestCase):
         db.create_all()
 
         # data to use when testing user registration and login
+        self.expired_token = "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJbWxoZENJNk1UVXhNVEE1TkRjMU1Dd2laWGh3SWpveE5URXhNRGs0TXpVd2ZRLmV5SnBaQ0k2TVgwLnQ1aEdhMmNON0RZU0VEYUxkSGljNHZXR1kzR1dzZF9wOEgyNTlka2o5YTQ"
         self.user_details1 = {"firstname": "Jjagwe", "lastname": "Dennis", "email": "dennisjjagwe@gmail.com",
                               "password": "password", "c_password": "password"}
         self.user_details2 = {"firstname": "King", "lastname": "Dennis", "email": "kingden@gmail.com",
                               "password": "mypassword", "c_password": "mypassword"}
-        self.login_details1 = {"username": "dennisjjagwe@gmail.com", "password": "password"}
-        self.login_details2 = {"username": "kingden@gmail.com", "password": "mypassword"}
+        self.login_details1 = {
+            "username": "dennisjjagwe@gmail.com", "password": "password"}
+        self.login_details2 = {
+            "username": "kingden@gmail.com", "password": "mypassword"}
 
         self.sample_categories = [{"cat_name": "Break Fast"}, {"cat_name": "Lunch and supper"},
                                   {"cat_name": "Evening Meals"}]
@@ -64,17 +67,22 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.kwargs.setdefault("data", json.dumps(invalid_data))
         response = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
         self.assertTrue(response.status_code, 422)
-        self.assertIn("First Name must contain no digits", response.data.decode())
-        self.assertIn("Password must be a minimum of 8 characters", response.data.decode())
-        self.assertIn("Password must match Confirm Password", response.data.decode())
+        self.assertIn("First Name must contain no digits",
+                      response.data.decode())
+        self.assertIn("Password must be a minimum of 8 characters",
+                      response.data.decode())
+        self.assertIn("Password must match Confirm Password",
+                      response.data.decode())
 
     def test_user_can_register_if_correct_data_is_sent(self):
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
-        response1 = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
+        response1 = self.test_client().post(
+            "/yummy/api/v1.0/auth/register/", **self.kwargs)
         self.assertEqual(response1.status_code, 201)
         response_string = response1.data.decode()
-        self.assertIn("You have been successfully registered and you can now login", response_string)
+        self.assertIn(
+            "You have been successfully registered and you can now login", response_string)
         self.assertIn(self.user_details1["firstname"], response_string)
         self.assertIn(self.user_details1["lastname"], response_string)
 
@@ -84,14 +92,17 @@ class ApiBasicsTestCase(unittest.TestCase):
         response = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
         self.assertEqual(response.status_code, 201)
         response_string = response.data.decode()
-        self.assertIn("You have been successfully registered and you can now login", response_string)
+        self.assertIn(
+            "You have been successfully registered and you can now login", response_string)
         self.assertIn(self.user_details1["firstname"], response_string)
         self.assertIn(self.user_details1["lastname"], response_string)
         # try registering the user again
-        response1 = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
+        response1 = self.test_client().post(
+            "/yummy/api/v1.0/auth/register/", **self.kwargs)
         response_string = response1.data.decode()
         self.assertEqual(response1.status_code, 422)
-        self.assertIn(f"Email address \'{self.user_details1['email']}\' already in use", response_string)
+        self.assertIn(
+            f"Email address \'{self.user_details1['email']}\' already in use", response_string)
 
     def test_user_cant_login_if_some_data_is_missing(self):
         # try logging in with no login data sent
@@ -99,56 +110,89 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Missing login credentials", response.data.decode())
         # try logging in with only username
-        headers = {"Authorization": f"Basic {b64encode(bytes('dennisjjagwe@gmail.com','utf-8')).decode('ascii')}"}
-        response1 = self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes('dennisjjagwe@gmail.com','utf-8')).decode('ascii')}"}
+        response1 = self.test_client().post(
+            "/yummy/api/v1.0/auth/login/", headers=headers)
         self.assertEqual(response1.status_code, 400)
         self.assertIn("Missing login credentials", response1.data.decode())
 
     def test_user_cant_login_if_sent_data_has_validation_errors(self):
-        headers = {"Authorization": f"Basic {b64encode(bytes('dennisjjagwe:myp','utf-8')).decode('ascii')}"}
-        response1 = self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes('dennisjjagwe:myp','utf-8')).decode('ascii')}"}
+        response1 = self.test_client().post(
+            "/yummy/api/v1.0/auth/login/", headers=headers)
         self.assertEqual(response1.status_code, 401)
         self.assertIn("Email is invalid", response1.data.decode())
-        self.assertIn("Password must be a minimum of 8 characters", response1.data.decode())
+        self.assertIn("Password must be a minimum of 8 characters",
+                      response1.data.decode())
         self.assertIn("Invalid login credentials", str(response1.headers))
 
     def test_user_cant_login_if_he_has_not_yet_registered(self):
         credentials = f"{self.user_details1['email']}:{self.user_details1['password']}"
-        headers = {"Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
         response = self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
         self.assertTrue(response.status_code, 404)
-        self.assertIn(f"Email '{self.user_details1['email']}' is not yet registered", response.data.decode())
+        self.assertIn(
+            f"Email '{self.user_details1['email']}' is not yet registered", response.data.decode())
 
     def test_user_cant_login_if_he_supplies_a_wrong_password(self):
         credentials = f"{self.user_details1['email']}:wrongpassword"
-        headers = {"Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
 
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
-        reg_response = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
+        reg_response = self.test_client().post(
+            "/yummy/api/v1.0/auth/register/", **self.kwargs)
         self.assertTrue(reg_response.status_code == 201)
 
         # login user with wrong password
-        login_response = self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
+        login_response = self.test_client().post(
+            "/yummy/api/v1.0/auth/login/", headers=headers)
         self.assertEqual(login_response.status_code, 401)
-        self.assertIn("Invalid email and password combination", login_response.data.decode())
-        self.assertIn("Invalid email and password combination", str(login_response.headers))
+        self.assertIn("Invalid email and password combination",
+                      login_response.data.decode())
+        self.assertIn("Invalid email and password combination",
+                      str(login_response.headers))
 
     def test_user_can_login_with_correct_credentials(self):
         credentials = f"{self.user_details1['email']}:{self.user_details1['password']}"
-        headers = {"Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
 
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
-        reg_response = self.test_client().post("/yummy/api/v1.0/auth/register/", **self.kwargs)
+        reg_response = self.test_client().post(
+            "/yummy/api/v1.0/auth/register/", **self.kwargs)
         self.assertTrue(reg_response.status_code == 201)
 
         # login user with wrong password
-        login_response = self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
+        login_response = self.test_client().post(
+            "/yummy/api/v1.0/auth/login/", headers=headers)
         self.assertEqual(login_response.status_code, 200)
         self.assertIn("Successfully logged in", login_response.data.decode())
         self.assertIn("token", login_response.data.decode())
-        self.assertTrue(json.loads(login_response.data.decode())["token"] is not None)
+        self.assertTrue(json.loads(login_response.data.decode())[
+                        "token"] is not None)
+
+    def test_user_cant_edit_details_with_expired_token(self):
+        reg_response = self.register_user(self.user_details1)
+        self.kwargs["data"] = json.dumps(
+            {"firstname": "Jonah", "lastname": "Pat", "email": self.user_details2["email"]})
+        self.kwargs["headers"] = {"x-access-token": self.expired_token}
+        response = self.test_client().put("/yummy/api/v1.0/users/", **self.kwargs)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("The token has expired", response.data.decode())
+
+    def test_user_cant_edit_details_with_no_token(self):
+        reg_response = self.register_user(self.user_details1)
+        self.kwargs["data"] = json.dumps(
+            {"firstname": "Jonah", "lastname": "Pat", "email": self.user_details2["email"]})
+        response = self.test_client().put("/yummy/api/v1.0/users/", **self.kwargs)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("The access token is required", response.data.decode())
 
     def test_user_can_edit_his_own_details(self):
         # register two users
@@ -160,13 +204,17 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.kwargs["headers"] = {"x-access-token": login_token}
         response = self.test_client().put("/yummy/api/v1.0/users/", **self.kwargs)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("All changes where applied successfully", response.data.decode())
+        self.assertIn("All changes where applied successfully",
+                      response.data.decode())
 
     def test_user_cant_change_email_to_existing_email_which_belongs_to_another_user(self):
         # register two users, login them and get their login tokens
-        reg_responses = [self.register_user(self.user_details1), self.register_user(self.user_details2)]
-        login_responses = [self.login_user(self.login_details1), self.login_user(self.login_details2)]
-        login_tokens = [self.get_token_from_response(response) for response in login_responses]
+        reg_responses = [self.register_user(
+            self.user_details1), self.register_user(self.user_details2)]
+        login_responses = [self.login_user(
+            self.login_details1), self.login_user(self.login_details2)]
+        login_tokens = [self.get_token_from_response(
+            response) for response in login_responses]
 
         # try changing one of the user email to that of the other user
         self.kwargs["data"] = json.dumps(
@@ -175,7 +223,8 @@ class ApiBasicsTestCase(unittest.TestCase):
 
         response = self.test_client().put("/yummy/api/v1.0/users/", **self.kwargs)
         self.assertEqual(response.status_code, 400)
-        self.assertIn(f"The email \'{self.user_details2['email']}\' is already in use", response.data.decode())
+        self.assertIn(
+            f"The email \'{self.user_details2['email']}\' is already in use", response.data.decode())
 
     def test_can_change_password_to_similar_password(self):
         # response = self.get_response_on_change_password(current="password", newpassword="password",
@@ -187,7 +236,8 @@ class ApiBasicsTestCase(unittest.TestCase):
     def test_user_cant_change_password_if_current_password_is_wrong(self):
         response = self.get_response_on_change_password()
         self.assertEqual(response.status_code, 403)
-        self.assertIn("The current password supplied is wrong", response.data.decode())
+        self.assertIn("The current password supplied is wrong",
+                      response.data.decode())
 
     def test_user_can_change_his_password(self):
         response = self.get_response_on_change_password(current="password")
@@ -199,7 +249,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertIn("No user found", response.data.decode())
         # register users
-        reg_responses = [self.register_user(self.user_details1), self.register_user(self.user_details2)]
+        reg_responses = [self.register_user(
+            self.user_details1), self.register_user(self.user_details2)]
         response = self.test_client().get("/yummy/api/v1.0/users/")
         self.assertEqual(response.status_code, 200)
         self.assertIn("users", response.data.decode())
@@ -228,9 +279,11 @@ class ApiBasicsTestCase(unittest.TestCase):
 
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         self.assertEqual(response.status_code, 201)
-        self.assertIn("Successfully created recipe category", response.data.decode())
+        self.assertIn("Successfully created recipe category",
+                      response.data.decode())
 
     def test_cant_add_recipe_category_that_already_exists(self):
         login_response = self.register_and_login_user()
@@ -238,10 +291,13 @@ class ApiBasicsTestCase(unittest.TestCase):
 
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
-        again_response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        again_response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         self.assertEqual(again_response.status_code, 400)
-        self.assertIn("The Recipe Category you are trying to add already exists", again_response.data.decode())
+        self.assertIn("The Recipe Category you are trying to add already exists",
+                      again_response.data.decode())
 
     def test_user_cant_add_category_if_invalid_data_is_sent(self):
         login_response = self.register_and_login_user()
@@ -249,9 +305,11 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.sample_categories[0]["cat_name"] = "h"
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Category Name must be a minimum of 3 characters", response.data.decode())
+        self.assertIn(
+            "Category Name must be a minimum of 3 characters", response.data.decode())
 
     def test_user_can_edit_recipe_category(self):
         login_response = self.register_and_login_user()
@@ -260,30 +318,36 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
 
         # change category details
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
-        self.assertIn("Successfully edited recipe category", edit_response.data.decode())
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        self.assertIn("Successfully edited recipe category",
+                      edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 200)
 
     def test_cant_edit_category_that_belongs_to_another_user(self):
         """ Register and login two users """
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
 
         # create category using the first user
         self.kwargs["data"] = json.dumps({"cat_name": "This is new"})
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         # try editing category details using the second user
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_tokens[1]}
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
         self.assertIn("The recipe category you are trying to modify does not belong to you",
                       edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 403)
@@ -295,13 +359,16 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
 
         # change category name to the same name
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs.pop("headers")
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
-        self.assertIn("The access token is required", edit_response.data.decode())
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        self.assertIn("The access token is required",
+                      edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 401)
 
     def test_category_isnt_edited_if_current_and_new_category_names_are_similar(self):
@@ -311,12 +378,15 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
 
         # change category name to the same name
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
-        self.assertIn("The new recipe category name you are trying to use already exists", edit_response.data.decode())
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        self.assertIn(
+            "The new recipe category name you are trying to use already exists", edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 400)
 
     def test_cant_edit_category_that_doesnot_exist(self):
@@ -326,13 +396,16 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
 
         # change category details
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipe_categories/2", **self.kwargs)
-        self.assertIn("The recipe category you are trying to modify does not exist", edit_response.data.decode())
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipe_categories/2", **self.kwargs)
+        self.assertIn(
+            "The recipe category you are trying to modify does not exist", edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 404)
 
     def test_user_can_delete_recipe_category(self):
@@ -342,28 +415,34 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
 
         # delete the category
         self.kwargs.pop("data")
-        delete_response = self.test_client().delete("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        delete_response = self.test_client().delete(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
         self.assertEqual(delete_response.status_code, 200)
-        self.assertIn("Recipe Category successfully deleted", delete_response.data.decode())
+        self.assertIn("Recipe Category successfully deleted",
+                      delete_response.data.decode())
 
     def test_cant_delete_a_category_that_belongs_to_another_user(self):
         """Register and login two users """
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
 
         # create category using the first user
         self.kwargs["data"] = json.dumps({"cat_name": "This is new"})
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
-        response = self.test_client().post("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().post(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         # try deleting category  using the second user
         self.kwargs.pop("data")
         self.kwargs["headers"] = {"x-access-token": login_tokens[1]}
-        delete_response = self.test_client().delete("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        delete_response = self.test_client().delete(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
         self.assertIn("The recipe category you are trying to modify does not belong to you",
                       delete_response.data.decode())
         self.assertEqual(delete_response.status_code, 403)
@@ -374,9 +453,11 @@ class ApiBasicsTestCase(unittest.TestCase):
 
         # delete a category that does not exist
         self.kwargs["headers"] = {"x-access-token": login_token}
-        delete_response = self.test_client().delete("/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
+        delete_response = self.test_client().delete(
+            "/yummy/api/v1.0/recipe_categories/1", **self.kwargs)
         self.assertEqual(delete_response.status_code, 404)
-        self.assertIn("The recipe category you are trying to modify does not exist", delete_response.data.decode())
+        self.assertIn("The recipe category you are trying to modify does not exist",
+                      delete_response.data.decode())
 
     def test_can_get_all_user_categories(self):
         # register and login user
@@ -384,11 +465,13 @@ class ApiBasicsTestCase(unittest.TestCase):
         login_token = self.get_token_from_response(login_response)
 
         # create some recipe categories
-        responses = [self.create_recipe_category(recipe_cat, login_token) for recipe_cat in self.sample_categories]
+        responses = [self.create_recipe_category(
+            recipe_cat, login_token) for recipe_cat in self.sample_categories]
 
         # fetch all the categories
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().get("/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        response = self.test_client().get(
+            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Recipe Categories exists", response.data.decode())
 
@@ -401,10 +484,12 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.create_recipe_category(self.sample_categories[0], login_token)
 
         # add recipes to the recipe category
-        add_recipe_responses = [self.create_recipe(recipe, login_token) for recipe in self.sample_recipes]
+        add_recipe_responses = [self.create_recipe(
+            recipe, login_token) for recipe in self.sample_recipes]
         # fetch the recipes is the category
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().get("/yummy/api/v1.0/recipe_categories/1/recipes/", **self.kwargs)
+        response = self.test_client().get(
+            "/yummy/api/v1.0/recipe_categories/1/recipes/", **self.kwargs)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Category exists", response.data.decode())
         self.assertIn(self.sample_recipes[0]["steps"], response.data.decode())
@@ -419,7 +504,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         response = self.test_client().get("/yummy/api/v1.0/recipe_categories/1",
                                           headers={"x-access-token": login_token})
         self.assertIn("Recipe category exists", response.data.decode())
-        self.assertIn(self.sample_categories[0]["cat_name"], response.data.decode())
+        self.assertIn(
+            self.sample_categories[0]["cat_name"], response.data.decode())
         self.assertEqual(response.status_code, 200)
 
     def test_can_add_recipe(self):
@@ -433,7 +519,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn("Successfully added recipe", response.data.decode())
         self.assertIn(self.sample_recipes[0]["steps"], response.data.decode())
-        self.assertIn(self.sample_categories[0]["cat_name"], response.data.decode())
+        self.assertIn(
+            self.sample_categories[0]["cat_name"], response.data.decode())
 
     def test_cant_add_recipe_in_a_category_that_doesnot_exist(self):
         # register and login user
@@ -442,13 +529,15 @@ class ApiBasicsTestCase(unittest.TestCase):
         # add recipe to a category that does not exist
         response = self.create_recipe(self.sample_recipes[0], login_token)
         self.assertEqual(response.status_code, 404)
-        self.assertIn("Trying to add a recipe to a category that does not exist", response.data.decode())
+        self.assertIn(
+            "Trying to add a recipe to a category that does not exist", response.data.decode())
 
     def test_cant_add_recipe_to_a_category_that_belongs_to_another_user(self):
         # register and login two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
 
         # create a recipe category using 1 user
         self.create_recipe_category(self.sample_categories[0], login_tokens[0])
@@ -456,7 +545,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         response = self.create_recipe(self.sample_recipes[0], login_tokens[1])
         # test if addition fails
         self.assertEqual(response.status_code, 403)
-        self.assertIn("Trying to add a recipe to a category that does not belong to you", response.data.decode())
+        self.assertIn(
+            "Trying to add a recipe to a category that does not belong to you", response.data.decode())
 
     def test_cant_add_recipe_in_a_category_where_another_recipe_with_same_name_exists(self):
         # register and login a user
@@ -485,8 +575,10 @@ class ApiBasicsTestCase(unittest.TestCase):
         response = self.create_recipe(self.sample_recipes[0], login_token)
         # test if the addition fails
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Name must be a minimum of 3 characters", response.data.decode())
-        self.assertIn("Steps must be a minimum of 10 characters", response.data.decode())
+        self.assertIn("Name must be a minimum of 3 characters",
+                      response.data.decode())
+        self.assertIn("Steps must be a minimum of 10 characters",
+                      response.data.decode())
 
     def test_can_edit_recipe(self):
         # login and register user
@@ -499,11 +591,14 @@ class ApiBasicsTestCase(unittest.TestCase):
         # edit the recipe
         self.kwargs["data"] = json.dumps(self.sample_recipes[1])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipes/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipes/1", **self.kwargs)
         # test if recipe is edited
         self.assertEqual(edit_response.status_code, 200)
-        self.assertIn("Successfully edited recipe", edit_response.data.decode())
-        self.assertIn(self.sample_recipes[1]["steps"], edit_response.data.decode())
+        self.assertIn("Successfully edited recipe",
+                      edit_response.data.decode())
+        self.assertIn(self.sample_recipes[1]
+                      ["steps"], edit_response.data.decode())
 
     def test_can_change_recipe_category_to_a_category_that_doesnot_exist(self):
         """ Ensures that a user cannot change recipe category to an id of the recipe category that doesnot exist"""
@@ -518,37 +613,44 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.sample_recipes[1]["category"] = 4
         self.kwargs["data"] = json.dumps(self.sample_recipes[1])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipes/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipes/1", **self.kwargs)
         # test if editing fails
         self.assertEqual(edit_response.status_code, 404)
-        self.assertIn("Trying to move a recipe to a category that does not exist", edit_response.data.decode())
+        self.assertIn(
+            "Trying to move a recipe to a category that does not exist", edit_response.data.decode())
 
     def test_can_edit_recipe_category_to_a_category_that_doesnot_belong_to_you(self):
         """ Ensures that user cannot change recipe category to a category id that belongs to another user"""
         # register and login two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
 
         # create two recipe categories with different users
         categories = [self.create_recipe_category(self.sample_categories[0], login_tokens[0]),
                       self.create_recipe_category(self.sample_categories[1], login_tokens[1])]
         # create recipe with one user
-        recipe_response = self.create_recipe(self.sample_recipes[0], login_tokens[0])
+        recipe_response = self.create_recipe(
+            self.sample_recipes[0], login_tokens[0])
         # edit recipe specifying category of the other user
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
         self.sample_recipes[1]["category"] = 2
         self.kwargs["data"] = json.dumps(self.sample_recipes[1])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipes/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipes/1", **self.kwargs)
         # test whether editing fails
         self.assertTrue(edit_response.status_code, 400)
-        self.assertIn("Trying to move a recipe to a category that does not belong to you", edit_response.data.decode())
+        self.assertIn(
+            "Trying to move a recipe to a category that does not belong to you", edit_response.data.decode())
 
     def test_can_only_edit_recipe_that_belongs_to_you(self):
         # register and login two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
         # create a recipe category using 1 user
         self.create_recipe_category(self.sample_categories[0], login_tokens[0])
         # create recipe in that category using the same user
@@ -556,10 +658,12 @@ class ApiBasicsTestCase(unittest.TestCase):
         # try editing the recipe using the other user
         self.kwargs["headers"] = {"x-access-token": login_tokens[1]}
         self.kwargs["data"] = json.dumps(self.sample_recipes[1])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipes/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipes/1", **self.kwargs)
         # test whether addition fails
         self.assertTrue(edit_response.status_code, 400)
-        self.assertIn("You are trying to modify a recipe that does not belong to you", edit_response.data.decode())
+        self.assertIn(
+            "You are trying to modify a recipe that does not belong to you", edit_response.data.decode())
 
     def test_can_only_edit_recipe_that_exists(self):
         # register and login a user
@@ -570,10 +674,12 @@ class ApiBasicsTestCase(unittest.TestCase):
         # try editing a recipe in thet category that doesnot exist
         self.kwargs["headers"] = {"x-access-token": login_token}
         self.kwargs["data"] = json.dumps(self.sample_recipes[0])
-        edit_response = self.test_client().put("/yummy/api/v1.0/recipes/1", **self.kwargs)
+        edit_response = self.test_client().put(
+            "/yummy/api/v1.0/recipes/1", **self.kwargs)
         # test if editing fails
         self.assertTrue(edit_response.status_code, 200)
-        self.assertIn("Trying to access a recipe that does not exist", edit_response.data.decode())
+        self.assertIn("Trying to access a recipe that does not exist",
+                      edit_response.data.decode())
 
     def test_can_publish_recipe(self):
         # register and login a user
@@ -595,7 +701,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         # login two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
 
         # create category using one user
         self.create_recipe_category(self.sample_categories[0], login_tokens[0])
@@ -606,7 +713,8 @@ class ApiBasicsTestCase(unittest.TestCase):
                                                     headers={"x-access-token": login_tokens[1]})
         # test if publishing fails
         self.assertTrue(publish_response.status_code, 400)
-        self.assertIn("You are trying to modify a recipe that does not belong to you", publish_response.data.decode())
+        self.assertIn("You are trying to modify a recipe that does not belong to you",
+                      publish_response.data.decode())
 
     def test_can_delete_recipe(self):
         # register and login user
@@ -621,14 +729,16 @@ class ApiBasicsTestCase(unittest.TestCase):
                                                     headers={"x-access-token": login_token})
         # test to see whether deletion succeeds
         self.assertTrue(delete_response.status_code, 200)
-        self.assertIn("Successfully deleted a recipe", delete_response.data.decode())
+        self.assertIn("Successfully deleted a recipe",
+                      delete_response.data.decode())
 
     def test_can_only_delete_own_recipes(self):
         """ Ensure that a user can only delete his own recipes"""
         # register and login two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
         # create a recipe category using 1 user
         self.create_recipe_category(self.sample_categories[0], login_tokens[0])
         # create recipe in that category using the same user
@@ -638,7 +748,8 @@ class ApiBasicsTestCase(unittest.TestCase):
                                                     headers={"x-access-token": login_tokens[1]})
         # test if deletion fails
         self.assertEqual(delete_response.status_code, 403)
-        self.assertIn("You are trying to modify a recipe that does not belong to you", delete_response.data.decode())
+        self.assertIn("You are trying to modify a recipe that does not belong to you",
+                      delete_response.data.decode())
 
     def test_can_get_all_user_recipes(self):
         # register and login user
@@ -650,7 +761,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         recipe_responses = [self.create_recipe(recipe, login_token) for recipe in self.sample_recipes if
                             recipe["category"] == "1"]
         # access the recipes in that category
-        response = self.test_client().get("/yummy/api/v1.0/recipes/", headers={"x-access-token": login_token})
+        response = self.test_client().get("/yummy/api/v1.0/recipes/",
+                                          headers={"x-access-token": login_token})
         # test to see if your recipes are fetched
         self.assertTrue(response.status_code == 200)
         self.assertIn("recipes", response.data.decode())
@@ -667,7 +779,8 @@ class ApiBasicsTestCase(unittest.TestCase):
         # create a recipe
         self.create_recipe(self.sample_recipes[0], login_token)
         # access the recipe
-        response = self.test_client().get("/yummy/api/v1.0/recipes/1", headers={"x-access-token": login_token})
+        response = self.test_client().get("/yummy/api/v1.0/recipes/1",
+                                          headers={"x-access-token": login_token})
         # test if recipe can be accessed
         self.assertEqual(response.status_code, 200)
         self.assertIn("Recipe exists", response.data.decode())
@@ -678,16 +791,18 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.kwargs["headers"] = {"x-access-token": login_token}
         return self.test_client().post("/yummy/api/v1.0/recipes/", **self.kwargs)
 
-
     def test_can_search_recipes_users_and_categories(self):
         # login and register two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
         # create some recipe categories
-        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        category_reponses = [self.create_recipe_category(
+            cat, login_tokens[0]) for cat in self.sample_categories]
         # create some recipes
-        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+        recipe_responses = [self.create_recipe(
+            recipe, login_tokens[0]) for recipe in self.sample_recipes]
 
         # test to see if search is successful
         response = self.test_client().get("/yummy/api/v1.0/search?q=a&page=1")
@@ -696,38 +811,47 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.assertIn("recipe_categories", response.data.decode())
         self.assertIn("users", response.data.decode())
         self.assertIn(self.user_details1["email"], response.data.decode())
-        self.assertIn(self.sample_categories[0]["cat_name"], response.data.decode())
+        self.assertIn(
+            self.sample_categories[0]["cat_name"], response.data.decode())
         self.assertIn(self.sample_recipes[0]["name"], response.data.decode())
 
     def test_search_fails_when_q_param_is_missing(self):
         # login and register two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
         # create some recipe categories
-        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        category_reponses = [self.create_recipe_category(
+            cat, login_tokens[0]) for cat in self.sample_categories]
         # create some recipes
-        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+        recipe_responses = [self.create_recipe(
+            recipe, login_tokens[0]) for recipe in self.sample_recipes]
 
         # test to see if search is successful
         response = self.test_client().get("/yummy/api/v1.0/search?page=1")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Check that you have supplied the search term and try again", response.data.decode())
+        self.assertIn(
+            "Check that you have supplied the search term and try again", response.data.decode())
 
     def test_search_fails_when_all_get_param_are_missing(self):
         # login and register two users
         login_responses = [self.register_and_login_user(),
                            self.register_and_login_user(self.user_details2, self.login_details2)]
-        login_tokens = [self.get_token_from_response(login_response) for login_response in login_responses]
+        login_tokens = [self.get_token_from_response(
+            login_response) for login_response in login_responses]
         # create some recipe categories
-        category_reponses = [self.create_recipe_category(cat, login_tokens[0]) for cat in self.sample_categories]
+        category_reponses = [self.create_recipe_category(
+            cat, login_tokens[0]) for cat in self.sample_categories]
         # create some recipes
-        recipe_responses = [self.create_recipe(recipe, login_tokens[0]) for recipe in self.sample_recipes]
+        recipe_responses = [self.create_recipe(
+            recipe, login_tokens[0]) for recipe in self.sample_recipes]
 
         # test to see if search is successful
         response = self.test_client().get("/yummy/api/v1.0/search")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Check that you have supplied all the required data and try again", response.data.decode())
+        self.assertIn(
+            "Check that you have supplied all the required data and try again", response.data.decode())
 
     def create_recipe_category(self, recipe_cat_details, login_token):
         self.kwargs["data"] = json.dumps(recipe_cat_details)
@@ -743,7 +867,8 @@ class ApiBasicsTestCase(unittest.TestCase):
 
     def login_user(self, user_details):
         credentials = f"{user_details['username']}:{user_details['password']}"
-        headers = {"Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
+        headers = {
+            "Authorization": f"Basic {b64encode(bytes(credentials,'utf-8')).decode('ascii')}"}
         return self.test_client().post("/yummy/api/v1.0/auth/login/", headers=headers)
 
     def register_and_login_user(self, user_reg=None, user_login=None):
@@ -776,7 +901,8 @@ class ApiBasicsTestCase(unittest.TestCase):
 
 class UserModelTestCase(unittest.TestCase):
     def setUp(self):
-        self.user = User("dennisjjagwe@gmail.com", "jjagwe", "dennis", "mypassword")
+        self.user = User("dennisjjagwe@gmail.com",
+                         "jjagwe", "dennis", "mypassword")
 
     def test_user_has_no_id_before_addition_to_database(self):
         self.assertFalse(self.user.id is not None)
@@ -796,6 +922,7 @@ class UserModelTestCase(unittest.TestCase):
         user2 = User("dennisj@gmail.com", "king", "dennis", "password")
         self.assertTrue(user1.password != user2.password)
         self.assertFalse(user2.password == user1.password)
+
 
 class ValidatorTestCases(unittest.TestCase):
     def setUp(self):
@@ -838,5 +965,7 @@ class ValidatorTestCases(unittest.TestCase):
         }}
         self.assertRaises(KeyError, self.validator.validate_data,
                           source=form_data, items=rules)
+
+
 if __name__ == "__main__":
     unittest.main()
