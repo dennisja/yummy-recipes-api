@@ -8,7 +8,7 @@ class Config:
     SECRET_KEY = os.environ.get(
         "YUMMY_SECRET_KEY", "THhdtgUhhkdldyrhfkfu8369kslo09wjjw")
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "YUMMY_DATABASE_URI", "postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes")
+        "DATABASE_URL", "postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 

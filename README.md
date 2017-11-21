@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/dennisja/yummy-recipes-api.svg?branch=master)](https://travis-ci.org/dennisja/yummy-recipes-api)
 [![Coverage Status](https://coveralls.io/repos/github/dennisja/yummy-recipes-api/badge.svg?branch=master)](https://coveralls.io/github/dennisja/yummy-recipes-api?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bef6f9c764c4a2b24ab7/maintainability)](https://codeclimate.com/github/dennisja/yummy-recipes-api/maintainability)
 
 # yummy-recipes-api
 This is the yummy recipes api

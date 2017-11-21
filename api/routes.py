@@ -2,9 +2,15 @@ from api import app, models, db
 from api.helpers import Secure, TokenError, TokenExpiredError
 from api.validator import ValidationError, ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
-from flask import make_response, jsonify, abort, request, url_for
+from flask import make_response, jsonify, abort, request, url_for, redirect
 from itsdangerous import BadSignature
 from sqlalchemy import or_
+
+
+@app.route("/")
+def home_page():
+    """ Redirects to the API documentation"""
+    return redirect("https://app.swaggerhub.com/api/dennisja/yummy_recipes/1.0.0")
 
 
 @app.route("/yummy/api/v1.0/auth/register/", methods=["POST"])
@@ -22,7 +28,8 @@ def register_user():
         return jsonify({"errors": validation_errors}), 422
 
     # check if user already exists
-    existing_user = models.User.query.filter_by(email=request_data["email"]).first()
+    existing_user = models.User.query.filter_by(
+        email=request_data["email"]).first()
     if existing_user:
         return jsonify({"errors": [f"Email address \'{request_data['email']}\' already in use"]}), 422
 
@@ -50,7 +57,8 @@ def login_user():
     # check if a user exists
     user = models.User.query.filter_by(email=auth_details["username"]).first()
     if not user:
-        raise models.UserNotFoundError(f"Email '{auth_details['username']}' is not yet registered")
+        raise models.UserNotFoundError(
+            f"Email '{auth_details['username']}' is not yet registered")
 
     # if user password is correct
     if user.verify_password(auth_details["password"]):
@@ -76,7 +84,8 @@ def add_recipe_category(user):
         return jsonify({"errors": recipe_errors}), 400
 
     # check whether a recipe category name by the same already exists
-    existing_recipe = models.RecipeCategory.query.filter_by(name=recipe_cat_data.get("cat_name"), owner=user.id).first()
+    existing_recipe = models.RecipeCategory.query.filter_by(
+        name=recipe_cat_data.get("cat_name"), owner=user.id).first()
 
     if existing_recipe:
         return jsonify({"errors": ["The Recipe Category you are trying to add already exists"]}), 400
@@ -175,7 +184,8 @@ def add_recipe(user):
         return jsonify({"errors": recipe_errors}), 400
 
     # check if the supplied recipe category exists
-    recipe_cat = models.RecipeCategory.query.filter_by(id=recipe_data.get("category")).first()
+    recipe_cat = models.RecipeCategory.query.filter_by(
+        id=recipe_data.get("category")).first()
     if not recipe_cat:
         return jsonify({"errors": ["Trying to add a recipe to a category that does not exist"]}), 404
 
@@ -218,7 +228,8 @@ def edit_a_recipe(user, recipe, recipe_id):
         return jsonify({"errors": recipe_errors}), 400
 
     # check if the supplied recipe category exists
-    recipe_cat = models.RecipeCategory.query.filter_by(id=recipe_data.get("category")).first()
+    recipe_cat = models.RecipeCategory.query.filter_by(
+        id=recipe_data.get("category")).first()
     if not recipe_cat:
         return jsonify({"errors": ["Trying to move a recipe to a category that does not exist"]}), 404
 
@@ -293,7 +304,8 @@ def edit_user_details(user):
         return jsonify({"errors": edit_errors}), 400
 
     # check whether email user is changing to is already taken
-    email_in_use = models.User.query.filter_by(email=user_data["email"]).first()
+    email_in_use = models.User.query.filter_by(
+        email=user_data["email"]).first()
 
     if email_in_use and email_in_use.id != user.id:
         return jsonify({"errors": [f"The email \'{user_data['email']}\' is already in use"]}), 400
@@ -368,14 +380,18 @@ def search():
     recipe_conditions = [models.Recipe.name.like(f"%{term}%") for term in search_terms] + [
         models.Recipe.steps.like(f"%{term}%") for term in search_terms] + [models.Recipe.ingredients.like(f"%{term}%")
                                                                            for term in search_terms]
-    category_conditions = [models.RecipeCategory.name.like(f"%{term}%") for term in search_terms]
+    category_conditions = [models.RecipeCategory.name.like(
+        f"%{term}%") for term in search_terms]
 
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 5))
     max_per_page = 20
-    users = models.User.query.filter(or_(*user_conditions)).paginate(page, per_page, False)
-    recipes = models.Recipe.query.filter(or_(*recipe_conditions)).paginate(page, per_page, False)
-    categories = models.RecipeCategory.query.filter(or_(*category_conditions)).paginate(page, per_page, False)
+    users = models.User.query.filter(
+        or_(*user_conditions)).paginate(page, per_page, False)
+    recipes = models.Recipe.query.filter(
+        or_(*recipe_conditions)).paginate(page, per_page, False)
+    categories = models.RecipeCategory.query.filter(
+        or_(*category_conditions)).paginate(page, per_page, False)
 
     response_body = {"users": [each_user.user_details for each_user in users.items],
                      "recipes": [each_recipe.recipe_details for each_recipe in recipes.items],
@@ -438,3 +454,14 @@ def handle_token_expiration_errors(error):
 @app.errorhandler(TokenError)
 def handle_invalid_token(error):
     return make_response(jsonify({"errors": [error.args[0]]}), 401)
+
+
+@app.errorhandler(500)
+def handle_server_error():
+    """ Handles internal server errors"""
+    return make_response(jsonify({"errors": ["Server encountered an error. Please try again later"]}), 500)
+
+@app.errorhandler(405)
+def handle_method_not_allowed():
+    """ Handles method not allowed error """
+    return make_response(jsonify({"errors":["The method you are trying on the end point is not allowed. Please try with a correct method"]}), 405)

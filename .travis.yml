@@ -1,5 +1,9 @@
 language: python
 
+env:
+  global:
+  - YUMMY_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes
+  - YUMMY_SECRET_KEY="The secret key you prefer"
 python:
   - 3.6
 
