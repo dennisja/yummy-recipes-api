@@ -1,8 +1,10 @@
 from functools import wraps, update_wrapper
-from api.helpers import Secure
-from flask import request, jsonify, make_response
-from api.models import User, Recipe, RecipeCategory
 from datetime import datetime
+
+from flask import request, jsonify, make_response
+
+from api.helpers import Secure
+from api.models import User, Recipe, RecipeCategory
 
 
 def json_data_required(decorated_func):
@@ -85,7 +87,8 @@ def user_must_own_recipe_category(decorated_func):
         user = args[0]
         recipe_cat_id = kwargs.get("category_id", None)
 
-        recipe_category = RecipeCategory.query.filter_by(id=recipe_cat_id).first()
+        recipe_category = RecipeCategory.query.filter_by(
+            id=recipe_cat_id).first()
 
         if not recipe_category:
             return jsonify({"errors": ["The recipe category you are trying to modify does not exist"]}), 404

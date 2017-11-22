@@ -1,10 +1,11 @@
+from flask import make_response, jsonify, abort, request, url_for, redirect
+from itsdangerous import BadSignature
+from sqlalchemy import or_
+
 from api import app, models, db
 from api.helpers import Secure, TokenError, TokenExpiredError
 from api.validator import ValidationError, ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
-from flask import make_response, jsonify, abort, request, url_for, redirect
-from itsdangerous import BadSignature
-from sqlalchemy import or_
 
 
 @app.route("/")
@@ -461,7 +462,8 @@ def handle_server_error():
     """ Handles internal server errors"""
     return make_response(jsonify({"errors": ["Server encountered an error. Please try again later"]}), 500)
 
+
 @app.errorhandler(405)
 def handle_method_not_allowed():
     """ Handles method not allowed error """
-    return make_response(jsonify({"errors":["The method you are trying on the end point is not allowed. Please try with a correct method"]}), 405)
+    return make_response(jsonify({"errors": ["The method you are trying on the end point is not allowed. Please try with a correct method"]}), 405)

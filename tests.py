@@ -1,9 +1,15 @@
-from api import app, db
-from api.validator import Validate, ValidationError
-from api.models import User, Recipe, RecipeCategory
+"""This is the tests module
+The module has application specific tests
+"""
+# standard lib imports
 import unittest
 import json
 from base64 import b64encode
+
+# application specific imports
+from api import app, db
+from api.validator import Validate, ValidationError
+from api.models import User, Recipe, RecipeCategory
 from config import configs
 
 

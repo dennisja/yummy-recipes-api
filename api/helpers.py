@@ -1,5 +1,6 @@
 from itsdangerous import URLSafeSerializer, TimedJSONWebSignatureSerializer as TimedSerializer, SignatureExpired, \
     base64_decode, base64_encode
+
 from api import app
 
 
@@ -12,8 +13,10 @@ class TokenError(Exception):
 
 
 class Secure:
-    __serializer = URLSafeSerializer(app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
-    __timed_serializer = TimedSerializer(app.config["SECRET_KEY"], expires_in=3600)
+    __serializer = URLSafeSerializer(
+        app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
+    __timed_serializer = TimedSerializer(
+        app.config["SECRET_KEY"], expires_in=3600)
 
     @staticmethod
     def encrypt_user_id(id):

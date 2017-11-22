@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from config import configs
 from flask_cors import CORS
+
+from config import configs
 
 app = Flask(__name__)
 app.config.from_object(configs.get("production"))
