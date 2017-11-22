@@ -5,11 +5,11 @@ from flask_cors import CORS
 from config import configs
 
 app = Flask(__name__)
-app.config.from_object(configs.get("production"))
+app.config.from_object(configs.get("development"))
 db = SQLAlchemy(app)
 cors = CORS(app)
 
-
-from api import models, routes
+# imports added here to avoid cyclic imports
+from api import models, routes, errors
 
 

@@ -1,10 +1,12 @@
+"""This is the routes module
+It contains all end points of the application
+"""
 from flask import make_response, jsonify, abort, request, url_for, redirect
-from itsdangerous import BadSignature
 from sqlalchemy import or_
 
 from api import app, models, db
-from api.helpers import Secure, TokenError, TokenExpiredError
-from api.validator import ValidationError, ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
+from api.helpers import Secure
+from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
 
 
@@ -407,63 +409,3 @@ def search():
         response_body["previous_page"] = page - 1
 
     return jsonify(response_body), 200
-
-
-# error handlers
-@app.errorhandler(404)
-def not_found_error(error):
-    """ Handles errors arising from absence of a resource """
-    return make_response(jsonify({"errors": ["Resource Not found"]}), 404)
-
-
-@app.errorhandler(400)
-@app.errorhandler(BadSignature)
-def bad_request(error):
-    """ Handles Bad Request Errors """
-    return make_response(jsonify({"errors": ["Request not Understood"]}), 400)
-
-
-@app.errorhandler(401)
-def invalid_authentication_details(error):
-    """ Handles Invalid Login credential details """
-    return make_response(jsonify({"errors": ["Invalid Login Credentials"]}), 401)
-
-
-@app.errorhandler(403)
-def permission_denied(error):
-    """ Handles errors resulting from insufficient permissions to perform a task """
-    return make_response(jsonify({"errors": ["You do not have enough permissions to perform this task"]}), 403)
-
-
-@app.errorhandler(ValidationError)
-def handle_validation_failure(error):
-    """ Handles failure of validation of sent data, in case some keys are missing """
-    return make_response(jsonify({"errors": [error.args[0]]}), 400)
-
-
-@app.errorhandler(models.UserNotFoundError)
-def handle_user_not_found_error(error):
-    return make_response(jsonify({"errors": [error.args[0]]}), 404)
-
-
-# handle token errors
-@app.errorhandler(TokenExpiredError)
-def handle_token_expiration_errors(error):
-    return make_response(jsonify({"errors": [error.args[0]]}), 401)
-
-
-@app.errorhandler(TokenError)
-def handle_invalid_token(error):
-    return make_response(jsonify({"errors": [error.args[0]]}), 401)
-
-
-@app.errorhandler(500)
-def handle_server_error():
-    """ Handles internal server errors"""
-    return make_response(jsonify({"errors": ["Server encountered an error. Please try again later"]}), 500)
-
-
-@app.errorhandler(405)
-def handle_method_not_allowed():
-    """ Handles method not allowed error """
-    return make_response(jsonify({"errors": ["The method you are trying on the end point is not allowed. Please try with a correct method"]}), 405)

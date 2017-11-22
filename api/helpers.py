@@ -16,7 +16,7 @@ class Secure:
     __serializer = URLSafeSerializer(
         app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
     __timed_serializer = TimedSerializer(
-        app.config["SECRET_KEY"], expires_in=3600)
+        app.config["SECRET_KEY"], expires_in=app.config["YUMMY_TOKEN_EXPIRY"])
 
     @staticmethod
     def encrypt_user_id(id):

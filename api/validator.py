@@ -1,3 +1,9 @@
+"""This is the validator module
+It contains the Validate class to perform user data validation
+ValidateUser class has rules to validate user data when registering, editing or loggin in a users
+ValidateRecipe class has rules to validate data when adding and creating a recipe
+ValidateRecipeCategory has rules to validate data when adding and creating a recipe category
+"""
 import re
 
 
@@ -6,6 +12,7 @@ class ValidationError(KeyError):
 
 
 class Validate:
+    """ Used to validate data """
     def __init__(self):
         self.__passes = False
         self.__errors = list()

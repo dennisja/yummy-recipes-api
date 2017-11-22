@@ -7,6 +7,7 @@ class Config:
     TESTING = False
     SECRET_KEY = os.environ.get(
         "YUMMY_SECRET_KEY", "THhdtgUhhkdldyrhfkfu8369kslo09wjjw")
+    YUMMY_TOKEN_EXPIRY = 604800
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL", "postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes")
 
