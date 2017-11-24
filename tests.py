@@ -233,11 +233,10 @@ class ApiBasicsTestCase(unittest.TestCase):
             f"The email \'{self.user_details2['email']}\' is already in use", response.data.decode())
 
     def test_can_change_password_to_similar_password(self):
-        # response = self.get_response_on_change_password(current="password", newpassword="password",
-        #                                                 newpassword_again="password")
-        # self.assertEqual(response.status_code, 400)
-        # self.assertIn("Current Password must not be equal to New Password", response.data.decode())
-        pass
+        response = self.get_response_on_change_password(current="password", newpassword="password",
+                                                        newpassword_again="password")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Current Password must not be equal to New Password", response.data.decode())
 
     def test_user_cant_change_password_if_current_password_is_wrong(self):
         response = self.get_response_on_change_password()
