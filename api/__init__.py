@@ -10,4 +10,4 @@ db = SQLAlchemy(app)
 cors = CORS(app)
 
 # imports added here to avoid cyclic imports
-from api import models, routes, errors
+from api import models, auth, routes, errors

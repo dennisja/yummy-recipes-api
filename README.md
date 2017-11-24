@@ -82,7 +82,7 @@ POST |/yummy/api/v1.0/auth/login/ | Log in a user | PUBLIC
 PUT  |/yummy/api/v1.0/users/| Updates user details| PRIVATE
 PATCH| /yummy/api/v1.0/users/| Changes user password| PRIVATE
 GET| /yummy/api/v1.0/users/| Get details of all registered users| PRIVATE
-GET| /yummy/api/v1.0/users/<id>| Get details of a particular user| PRIVATE
+GET| /yummy/api/v1.0/users/&lt;int:id&gt;| Get details of a particular user| PRIVATE
 POST |/yummy/api/v1.0/recipe_categories/ | Helps user create a recipe category | PRIVATE
 GET| /yummy/api/v1.0/search| search for registered users, recipes, and recipe categories| PRIVATE
 PUT |/yummy/api/v1.0/recipe_categories/<int:category_id>| Helps a user edit existing category| PRIVATE

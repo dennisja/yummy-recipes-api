@@ -64,7 +64,7 @@ class Validate:
                             self.__errors.append("{} must match {}".format(
                                 self.__display[each_rule_value], self.__display[item]))
 
-                        if each_rule == "email" and not re.compile("[@]").search(value):
+                        if each_rule == "email" and not re.search(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",value):
                             self.__errors.append(
                                 "{} is invalid".format(self.__display[item]))
 
@@ -72,8 +72,10 @@ class Validate:
                             each_rule_value]:
                             self.__errors.append(
                                 f"{self.__display[each_rule_value]} must not be equal to {self.__display[item]}")
-
-            return self.__errors
+            validation_errors = self.__errors
+            # resetting the errors array
+            self.__errors = list()
+            return validation_errors
 
         except KeyError as er:
             raise ValidationError("Validation failure: Check that you sent all the required data and try again")
