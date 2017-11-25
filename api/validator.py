@@ -86,6 +86,17 @@ class Validate:
 
 class ValidateUser():
     validator = Validate()
+    __password_rules = {
+        "required": True,
+        "min": 8,
+        "max": 20
+    }
+    __email_rules = {
+        "required": True,
+        "email": True,
+        "min": 8,
+        "max": 100
+    }
 
     @staticmethod
     def validate_user_on_reg(user_registration_details, action="create"):
@@ -98,20 +109,11 @@ class ValidateUser():
             },
             "lastname": {
                 "required": True,
-                "max": 20,
+                "max": 40,
                 "no_number": True
             },
-            "email": {
-                "required": True,
-                "email": True,
-                "min": 8,
-                "max": 100
-            },
-            "password": {
-                "required": True,
-                "min": 8,
-                "max": 20
-            },
+            "email": ValidateUser.__email_rules,
+            "password": ValidateUser.__password_rules,
             "c_password": {
                 "matches": "password"
             }
@@ -130,35 +132,20 @@ class ValidateUser():
     def validate_user_login(login_details):
         """ Validates user login details """
         login_errors = ValidateUser.validator.validate_data(login_details, {
-            "username": {
-                "required": True,
-                "email": True,
-                "min": 8,
-                "max": 100
-            },
-            "password": {
-                "required": True,
-                "min": 8,
-                "max": 20
-            }
+            "username": ValidateUser.__email_rules,
+            "password": ValidateUser.__password_rules
         })
         return login_errors
 
     @staticmethod
     def validate_password_data(user_data):
         """ Validates user data submitted when changing a password """
+        new_password_rules = dict(ValidateUser.__password_rules)
+        new_password_rules["not_equal_to"] = "current_password"
+
         password_errors = ValidateUser.validator.validate_data(user_data, {
-            "current_password": {
-                "required": True,
-                "min": 8,
-                "max": 20
-            },
-            "new_password": {
-                "required": True,
-                "min": 8,
-                "max": 20,
-                "not_equal_to": "current_password"
-            },
+            "current_password": ValidateUser.__password_rules,
+            "new_password": new_password_rules,
             "new_password_again": {
                 "matches": "new_password"
             }
