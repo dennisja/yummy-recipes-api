@@ -1,7 +1,7 @@
 """This is the routes module
 It contains all end points of the application
 """
-from flask import make_response, jsonify, abort, request, url_for, redirect
+from flask import jsonify, abort, request, redirect
 from sqlalchemy import or_
 
 from api import app, models, db
