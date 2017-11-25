@@ -87,6 +87,15 @@ Make sure you are in the application root folder at the terminal and then run th
 python run.py
 ```
 
+## Running tests
+Using nosetests
+```
+nosetests --with-coverage
+```
+Using unitest
+```
+python -m unittest
+```
 ## End points available
 Method       | Path          | Role         | Access
 ------------ | ------------- | -------------| -------
@@ -108,13 +117,3 @@ PATCH| /yummy/api/v1.0/recipes/&lt;int:recipe_id&gt;| Helps user to publish a re
 DELETE |/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Helps user delete a recipe | PRIVATE
 GET| /yummy/api/v1.0/recipes/| Get all recipes created by a user| PRIVATE
 GET| /yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Get details of a particular recipe created by a user| PRIVATE
-
-## Running tests
-Using nosetests
-```
-nosetests --with-coverage
-```
-Using unitest
-```
-python -m unittest
-```
