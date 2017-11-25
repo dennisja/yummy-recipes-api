@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ```
 
 ### Activating the virtual environment and setting environment variables
-####For windows users, you can activate the virtual environment by following the steps below
+#### For windows users, you can activate the virtual environment by following the steps below
 - If you are using windows command prompt
 ```
 virtualenv venv
@@ -46,7 +46,7 @@ cd venv/scripts && activate && cd ../..
 virtualenv venv
 source venv/scripts/activate
 ```
-After activating the virtual environment, you can set environment variables by running the commands below
+#### After activating the virtual environment, you can set environment variables by running the commands below
 - If you are using the in built windows command prompt
 ```
 set YUMMY_TEST_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes
