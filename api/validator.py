@@ -13,6 +13,7 @@ class ValidationError(KeyError):
 
 class Validate:
     """ Used to validate data """
+
     def __init__(self):
         self.__passes = False
         self.__errors = list()
@@ -50,7 +51,8 @@ class Validate:
                                 "{} must be a minimum of {} characters".format(self.__display[item], each_rule_value))
 
                         if each_rule == "numeric" and not str(value).isdecimal():
-                            self.__errors.append(f"{self.__display[item]} must be a number")
+                            self.__errors.append(
+                                f"{self.__display[item]} must be a number")
 
                         if each_rule == "max" and len(value) > each_rule_value:
                             self.__errors.append(
@@ -64,12 +66,12 @@ class Validate:
                             self.__errors.append("{} must match {}".format(
                                 self.__display[each_rule_value], self.__display[item]))
 
-                        if each_rule == "email" and not re.search(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",value):
+                        if each_rule == "email" and not re.search(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", value):
                             self.__errors.append(
                                 "{} is invalid".format(self.__display[item]))
 
                         if each_rule == "not_equal_to" and each_rule_value in source and value == source[
-                            each_rule_value]:
+                                each_rule_value]:
                             self.__errors.append(
                                 f"{self.__display[each_rule_value]} must not be equal to {self.__display[item]}")
             validation_errors = self.__errors
@@ -78,7 +80,8 @@ class Validate:
             return validation_errors
 
         except KeyError as er:
-            raise ValidationError("Validation failure: Check that you sent all the required data and try again")
+            raise ValidationError(
+                "Validation failure: Check that you sent all the required data and try again")
 
 
 class ValidateUser():
@@ -119,7 +122,8 @@ class ValidateUser():
             rules.pop("password")
             rules.pop("c_password")
 
-        validation_errors = ValidateUser.validator.validate_data(user_registration_details, rules)
+        validation_errors = ValidateUser.validator.validate_data(
+            user_registration_details, rules)
         return validation_errors
 
     @staticmethod

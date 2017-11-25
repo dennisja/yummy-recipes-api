@@ -6,6 +6,7 @@ from api import app, models
 from api.validator import ValidateUser
 from api.helpers import Secure
 
+
 @app.route("/yummy/api/v1.0/auth/register/", methods=["POST"])
 def register_user():
     """ Registers a yummy recipes user """
@@ -39,7 +40,7 @@ def register_user():
 def login_user():
     auth_details = request.authorization
     # check whether authorization details are supplied
-    if not auth_details or not "username" in auth_details or not "password" in auth_details:
+    if not auth_details or "username" not in auth_details or "password" not in auth_details:
         return jsonify({"errors": ["Missing login credentials"]}), 400
     # validate sent details
     validation_errors = ValidateUser.validate_user_login(auth_details)
@@ -61,4 +62,3 @@ def login_user():
 
     return jsonify({"errors": ["Invalid email and password combination"]}), 401, {
         "WWW-Authenticate": "Basic realm='Invalid email and password combination'"}
-
