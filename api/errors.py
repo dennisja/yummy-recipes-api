@@ -48,12 +48,8 @@ def handle_user_not_found_error(error):
 
 # handle token errors
 @app.errorhandler(TokenExpiredError)
-def handle_token_expiration_errors(error):
-    return make_response(jsonify({"errors": [error.args[0]]}), 401)
-
-
 @app.errorhandler(TokenError)
-def handle_invalid_token(error):
+def handle_token_errors(error):
     return make_response(jsonify({"errors": [error.args[0]]}), 401)
 
 
