@@ -38,12 +38,10 @@ pip install -r requirements.txt
 #### For windows users, you can activate the virtual environment by following the steps below
 - If you are using windows command prompt
 ```
-virtualenv venv
 cd venv/scripts && activate && cd ../..
 ```
 - if you are using git bash
 ```
-virtualenv venv
 source venv/scripts/activate
 ```
 #### After activating the virtual environment, you can set environment variables by running the commands below
