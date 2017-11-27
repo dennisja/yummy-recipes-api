@@ -44,7 +44,7 @@ cd venv/scripts && activate && cd ../..
 ```
 source venv/scripts/activate
 ```
-#### After activating the virtual environment, you can set environment variables by running the commands below
+##### After activating the virtual environment, you can set environment variables by running the commands below
 - If you are using the in built windows command prompt
 ```
 set YUMMY_TEST_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes
