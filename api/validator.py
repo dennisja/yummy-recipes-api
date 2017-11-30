@@ -74,6 +74,9 @@ class Validate:
                                 each_rule_value]:
                             self.__errors.append(
                                 f"{self.__display[each_rule_value]} must not be equal to {self.__display[item]}")
+                        
+                        if each_rule == "no_characters" and re.search(r"[@#$%^&\*()\{\}\[\]\+=!~\/\\|\.]+", value):
+                            self.__errors.append(f"{self.__display[item]} must not contain non word characters")
             validation_errors = self.__errors
             # resetting the errors array
             self.__errors = list()
@@ -105,12 +108,14 @@ class ValidateUser():
             "firstname": {
                 "required": True,
                 "max": 20,
-                "no_number": True
+                "no_number": True,
+                "no_characters": True
             },
             "lastname": {
                 "required": True,
                 "max": 40,
-                "no_number": True
+                "no_number": True,
+                "no_characters": True
             },
             "email": ValidateUser.__email_rules,
             "password": ValidateUser.__password_rules,
