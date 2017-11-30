@@ -14,10 +14,12 @@ from api import db
 
 
 class UserNotFoundError(Exception):
+    """ Thrown when trying a user who doesnot exist """
     pass
 
 
 class User(db.Model):
+    """ Contains information about the user  """
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -37,7 +39,7 @@ class User(db.Model):
         self.email = email
         self.firstname = fname
         self.lastname = lname
-        self.set_password(password),
+        self.set_password(password)
         self.mobile = mobile
 
     def set_password(self, password):
@@ -77,6 +79,7 @@ class User(db.Model):
 
 
 class Recipe(db.Model):
+    """ Contains information about a recipe """
     __tablename__ = "recipes"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -105,6 +108,7 @@ class Recipe(db.Model):
 
     @property
     def recipe_details(self):
+        """ Contains information about a recipe """
         return {
             "id": self.id,
             "name": self.name,
@@ -120,14 +124,17 @@ class Recipe(db.Model):
         }
 
     def save_recipe(self):
+        """ Saves a recipe """
         db.session.add(self)
         db.session.commit()
 
     def delete_recipe(self):
+        """ Deletes a recipe """
         db.session.delete(self)
         db.session.commit()
 
     def edit_recipe(self, recipe_data):
+        """ Edits a recipe """
         self.name = recipe_data.get("name", self.name)
         self.steps = recipe_data.get("steps", self.steps)
         self.ingredients = recipe_data.get("ingredients", self.ingredients)
@@ -140,6 +147,7 @@ class Recipe(db.Model):
 
 
 class RecipeCategory(db.Model):
+    """ Has information about a recipe category """
     __tablename__ = "recipe_categories"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -151,7 +159,7 @@ class RecipeCategory(db.Model):
                        onupdate=db.func.current_timestamp())
 
     recipes = db.relationship(
-        "Recipe", backref="recipe_category", lazy="dynamic")
+        "Recipe", backref="recipe_category", lazy="dynamic", cascade="all, delete-orphan")
 
     def __init__(self, name, owner):
         """ RecipeCategory object initializer """
@@ -159,15 +167,18 @@ class RecipeCategory(db.Model):
         self.owner = owner
 
     def save_recipe_cat(self):
+        """ Saves a recipe category """
         db.session.add(self)
         db.session.commit()
 
     def delete_recipe_cat(self):
+        """ Deletes a recipe category """
         db.session.delete(self)
         db.session.commit()
 
     @property
     def recipe_cat_details(self):
+        """ Returns a dictionary containing details about a recipe category """
         return {
             "id": self.id,
             "name": self.name,

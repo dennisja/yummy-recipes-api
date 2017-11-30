@@ -5,6 +5,7 @@ from tests import ApiBasicsTestCase
 
 class CategoryTestCases(ApiBasicsTestCase):
     def test_adding_recipe_category(self):
+        """ Tests adding a recipe category """
         # register and login a user
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
