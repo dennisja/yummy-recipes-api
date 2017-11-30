@@ -75,7 +75,7 @@ class Validate:
                             self.__errors.append(
                                 f"{self.__display[each_rule_value]} must not be equal to {self.__display[item]}")
                         
-                        if each_rule == "no_characters" and re.search(r"@#$%^&\*()\{\}\[\]\+=!~\/\\|\.]+", value):
+                        if each_rule == "no_characters" and re.search(r"[@#$%^&\*()\{\}\[\]\+=!~\/\\|\.]+", value):
                             self.__errors.append(f"{self.__display[item]} must not contain non word characters")
             validation_errors = self.__errors
             # resetting the errors array
