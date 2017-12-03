@@ -15,6 +15,7 @@ from config import CONFIGS as configs
 
 class ApiBasicsTestCase(unittest.TestCase):
     """ Has data to use when testing """
+
     def setUp(self):
         self.app = app
         self.app_context = self.app.app_context()
@@ -27,6 +28,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.expired_token = "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJbWxoZENJNk1UVXhNVEE1Tk\
         RjMU1Dd2laWGh3SWpveE5URXhNRGs0TXpVd2ZRLmV5SnBaQ0k2TVgwLnQ1aEdhMmNON0RZU0\
         VEYUxkSGljNHZXR1kzR1dzZF9wOEgyNTlka2o5YTQ"
+
         self.user_details1 = {
             "firstname": "Jjagwe",
             "lastname": "Dennis",
@@ -149,6 +151,7 @@ class ApiBasicsTestCase(unittest.TestCase):
 
 class AppTestCases(ApiBasicsTestCase):
     """ Tests application basic cases  """
+
     def test_app_is_not_null(self):
         """Test if instance exists"""
         self.assertTrue(self.app is not None)
@@ -157,6 +160,14 @@ class AppTestCases(ApiBasicsTestCase):
         """ Test if application is running in test mode """
         self.assertTrue(self.app.config["TESTING"])
         self.assertTrue(self.app.config["DEBUG"])
+
+    def test_invalid_method_on_endpoint(self):
+        """ test server response on an invalid method on the access point"""
+        response = self.test_client().post("/yummy/api/v1.0/users/")
+        self.assertTrue(response.status_code == 405)
+        self.assertIn("The method you are trying on the end po\
+            int is not allowed. Please try with a correct method",
+                      response.data.decode())
 
 
 if __name__ == "__main__":
