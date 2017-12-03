@@ -5,9 +5,10 @@ from flask import jsonify, abort, request, redirect
 from sqlalchemy import or_
 
 from api import app, models, db
-from api.helpers import Secure
+from api.helpers import Secure, format_data
 from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
-from api.decorators import auth_token_required, json_data_required, user_must_own_recipe, user_must_own_recipe_category
+from api.decorators import auth_token_required, json_data_required,\
+                            user_must_own_recipe,user_must_own_recipe_category
 
 
 @app.route("/")
@@ -32,7 +33,8 @@ def add_recipe_category(user):
 
     # check whether a recipe category name by the same already exists
     existing_recipe = models.RecipeCategory.query.filter_by(
-        name=recipe_cat_data.get("cat_name"), owner=user.id).first()
+        name=format_data(recipe_cat_data.get("cat_name")),
+        owner=user.id).first()
 
     if existing_recipe:
         return jsonify({
@@ -41,7 +43,8 @@ def add_recipe_category(user):
         }), 400
 
     # create the recipe category
-    recipe = models.RecipeCategory(recipe_cat_data.get("cat_name"), user.id)
+    recipe = models.RecipeCategory(
+        format_data(recipe_cat_data.get("cat_name")), user.id)
     recipe.save_recipe_cat()
 
     return jsonify({
@@ -65,7 +68,8 @@ def edit_recipe_category(user, recipe_cat, category_id):
         return jsonify({"errors": recipe_cat_errors}), 400
 
     existing_recipe_cat = models.RecipeCategory.query.filter_by(
-        name=recipe_cat_data.get("cat_name"), owner=user.id).first()
+        name=format_data(recipe_cat_data.get("cat_name")),
+        owner=user.id).first()
 
     if existing_recipe_cat and existing_recipe_cat.id != category_id:
         return jsonify({
@@ -74,14 +78,14 @@ def edit_recipe_category(user, recipe_cat, category_id):
             ]
         }), 400
 
-    if recipe_cat_data.get("cat_name") == recipe_cat.name:
+    if format_data(recipe_cat_data.get("cat_name")) == recipe_cat.name:
         return jsonify({
             "message":
             "Recipe category name is similar to the previous. No changes where made"
         }), 400
 
     # edit the recipe
-    recipe_cat.name = recipe_cat_data.get("cat_name")
+    recipe_cat.name = format_data(recipe_cat_data.get("cat_name"))
     db.session.commit()
 
     return jsonify({
@@ -98,7 +102,6 @@ def delete_recipe_category(user, recipe_cat, category_id):
     """ Deletes a recipe category """
     # delete the recipe category and all its recipes
     recipe_cat.delete_recipe_cat()
-    # TODO: come back to delete all recipes in a recipe category
     return jsonify({"message": "Recipe Category successfully deleted"}), 200
 
 
@@ -243,8 +246,8 @@ def edit_a_recipe(user, recipe, recipe_id):
                 "Trying to move a recipe to a category that does not belong to you"
             ]
         }), 403
-
-    # check whether the new name does not belong to any other recipe by the same user in the same category
+    ''' check whether the new name does not belong to any other recipe by
+        the same user in the same category '''
     recipe_exists = models.Recipe.query.filter_by(
         name=recipe_data.get("name"),
         owner=user.id,
@@ -400,6 +403,7 @@ def get_user(id):
 # search end point
 @app.route("/yummy/api/v1.0/search")
 def search():
+    """ Provides functionality for searching for a recipes, categories and registered users"""
     if not request.args:
         return jsonify({
             "errors": [
@@ -433,8 +437,12 @@ def search():
     ]
 
     page = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 5))
-    max_per_page = 20
+    per_page = int(
+        request.args.get("per_page", app.config.get("ITEMS_PER_PAGE")))
+    max_per_page = app.config.get("MAX_ITEMS_PER_PAGE")
+    if per_page > max_per_page:
+        per_page = max_per_page
+
     users = models.User.query.filter(or_(*user_conditions)).paginate(
         page, per_page, False)
     recipes = models.Recipe.query.filter(or_(*recipe_conditions)).paginate(

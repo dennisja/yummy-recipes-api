@@ -1,18 +1,25 @@
-from itsdangerous import URLSafeSerializer, TimedJSONWebSignatureSerializer as TimedSerializer, SignatureExpired, \
-    base64_decode, base64_encode
+from itsdangerous import URLSafeSerializer,\
+                        TimedJSONWebSignatureSerializer as TimedSerializer, SignatureExpired,\
+                        base64_decode, base64_encode
 
 from api import app
 
 
 class TokenExpiredError(SignatureExpired):
+    """ An exception raised when a user uses an expired token """
     pass
 
 
 class TokenError(Exception):
+    """ This is an exception raised when a user uses an invalid token """
     pass
 
 
 class Secure:
+    """ Secure class handles basic security operations of the api e.g.
+    Generates the token for authentication of api users
+    Generates and decrypts public user ids
+    """
     __serializer = URLSafeSerializer(
         app.config["SECRET_KEY"], salt="yagshjuegsbkajhsi")
     __timed_serializer = TimedSerializer(
@@ -20,15 +27,20 @@ class Secure:
 
     @staticmethod
     def encrypt_user_id(id):
+        """ Generates public user ids"""
         return Secure.__serializer.dumps(id)
 
     @staticmethod
     def decrypt_user_id(encrypted_id):
+        """Decrypts public user ids"""
         return Secure.__serializer.loads(encrypted_id)
 
     @staticmethod
     def generate_auth_token(user_id):
-        return base64_encode(Secure.__timed_serializer.dumps({"id": user_id})).decode("utf-8")
+        """ Generates an authentication token """
+        return base64_encode(Secure.__timed_serializer.dumps({
+            "id": user_id
+        })).decode("utf-8")
 
     @staticmethod
     def decrypt_auth_token(token):
@@ -38,8 +50,18 @@ class Secure:
         :return: The dictionary containing the id of the logged in user
         """
         try:
-            return Secure.__timed_serializer.loads(base64_decode(token.encode("utf-8")))
+            return Secure.__timed_serializer.loads(
+                base64_decode(token.encode("utf-8")))
         except SignatureExpired:
             raise TokenExpiredError("The token has expired")
         except:
             raise TokenError("Invalid Token")
+
+
+def format_data(data):
+    """ Formats data for uniformly saving data in the database """
+    return " ".join(str(data).strip().title().split())
+
+def fomart_email(email):
+    """ Formats email to ensure uniform storage of emails in the database """
+    return str(email).strip().lower()
