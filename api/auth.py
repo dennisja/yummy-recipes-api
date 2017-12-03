@@ -4,7 +4,7 @@ from flask import request, jsonify, abort
 
 from api import app, models
 from api.validator import ValidateUser
-from api.helpers import Secure
+from api.helpers import Secure, format_email
 from api import BASE_URL
 
 
@@ -24,7 +24,7 @@ def register_user():
 
     # check if user already exists
     existing_user = models.User.query.filter_by(
-        email=request_data["email"]).first()
+        email=format_email(request_data["email"])).first()
     if existing_user:
         return jsonify({
             "errors":
@@ -32,8 +32,9 @@ def register_user():
         }), 422
 
     # register the user
-    user = models.User(request_data["email"], request_data["firstname"],
-                       request_data["lastname"], request_data["password"])
+    user = models.User(
+        format_email(request_data["email"]), request_data["firstname"],
+        request_data["lastname"], request_data["password"])
     user.save_user()
 
     return jsonify({
@@ -61,7 +62,8 @@ def login_user():
         }
 
     # check if a user exists
-    user = models.User.query.filter_by(email=auth_details["username"]).first()
+    user = models.User.query.filter_by(
+        email=format_email(auth_details["username"])).first()
     if not user:
         raise models.UserNotFoundError(
             f"Email '{auth_details['username']}' is not yet registered")

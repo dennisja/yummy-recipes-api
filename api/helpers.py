@@ -65,6 +65,6 @@ def format_data(data):
     """ Formats data for uniformly saving data in the database """
     return " ".join(str(data).strip().title().split())
 
-def fomart_email(email):
+def format_email(email):
     """ Formats email to ensure uniform storage of emails in the database """
     return str(email).strip().lower()

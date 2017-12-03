@@ -5,7 +5,7 @@ from flask import jsonify, abort, request, redirect
 from sqlalchemy import or_
 
 from api import app, models, db
-from api.helpers import Secure, format_data
+from api.helpers import Secure, format_data, format_email
 from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required,\
                             user_must_own_recipe,user_must_own_recipe_category
@@ -337,7 +337,7 @@ def edit_user_details(user):
 
     # check whether email user is changing to is already taken
     email_in_use = models.User.query.filter_by(
-        email=user_data["email"]).first()
+        email=format_email(user_data["email"])).first()
 
     if email_in_use and email_in_use.id != user.id:
         return jsonify({
@@ -345,7 +345,7 @@ def edit_user_details(user):
             [f"The email \'{user_data['email']}\' is already in use"]
         }), 400
 
-    user.email = user_data.get("email")
+    user.email = format_email(user_data.get("email"))
     user.firstname = user_data.get("firstname")
     user.lastname = user_data.get("lastname")
 
