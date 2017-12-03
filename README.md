@@ -110,7 +110,7 @@ GET |/yummy/api/v1.0/recipe_categories/ | Used to fetch a user recipe categories
 GET |/yummy/api/v1.0/recipe_categories/&lt;int:category_id&gt; | Fetches recipe details of a single recipe  | PRIVATE
 DELETE |/yummy/api/v1.0/recipe_categories/&lt;int:category_id&gt;| Helps a user delete a recipe category | PRIVATE
 POST |/yummy/api/v1.0/recipes/ | Helps user add a new recipe | PRIVATE
-PUT  |r/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Used to update recipe details | PRIVATE
+PUT  |/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Used to update recipe details | PRIVATE
 PATCH| /yummy/api/v1.0/recipes/&lt;int:recipe_id&gt;| Helps user to publish a recipe| PRIVATE
 DELETE |/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Helps user delete a recipe | PRIVATE
 GET| /yummy/api/v1.0/recipes/| Get all recipes created by a user| PRIVATE
