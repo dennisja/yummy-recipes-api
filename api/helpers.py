@@ -1,3 +1,6 @@
+""" The helpers module has helper classes and helper functions i.e.
+Secure class handles encrypting and decrypting of tokens and user ids
+format_data and format-email methods to ensure storage of uniform data"""
 from itsdangerous import URLSafeSerializer,\
                         TimedJSONWebSignatureSerializer as TimedSerializer, SignatureExpired,\
                         base64_decode, base64_encode
@@ -26,9 +29,9 @@ class Secure:
         app.config["SECRET_KEY"], expires_in=app.config["YUMMY_TOKEN_EXPIRY"])
 
     @staticmethod
-    def encrypt_user_id(id):
+    def encrypt_user_id(user_id):
         """ Generates public user ids"""
-        return Secure.__serializer.dumps(id)
+        return Secure.__serializer.dumps(user_id)
 
     @staticmethod
     def decrypt_user_id(encrypted_id):

@@ -1,3 +1,4 @@
+""" The config module has all api configurations """
 import os
 
 
@@ -35,7 +36,7 @@ class ProductConfig(Config):
     pass
 
 
-configs = {
+CONFIGS = {
     "development": DevelpmentConfig,
     "testing": TestingConfig,
     "production": ProductConfig,

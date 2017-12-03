@@ -1,3 +1,6 @@
+""" The decorators module has decorators to help avoid
+code duplication among routes in the application
+"""
 from functools import wraps
 
 from flask import request, jsonify

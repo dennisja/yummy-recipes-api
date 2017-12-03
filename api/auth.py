@@ -25,7 +25,8 @@ def register_user():
     existing_user = models.User.query.filter_by(
         email=request_data["email"]).first()
     if existing_user:
-        return jsonify({"errors": [f"Email address \'{request_data['email']}\' already in use"]}), 422
+        return jsonify({"errors": [f"Email address \'{request_data['email']}\' already in use"]}
+                      ), 422
 
     # register the user
     user = models.User(request_data["email"], request_data["firstname"],
@@ -33,11 +34,13 @@ def register_user():
     user.save_user()
 
     return jsonify(
-        {"messages": ["You have been successfully registered and you can now login"], "data": user.user_details}), 201
+        {"messages": ["You have been successfully registered and you can now login"],
+         "data": user.user_details}), 201
 
 
 @app.route("/yummy/api/v1.0/auth/login/", methods=["POST"])
 def login_user():
+    """ The end point is used to login a user """
     auth_details = request.authorization
     # check whether authorization details are supplied
     if not auth_details or "username" not in auth_details or "password" not in auth_details:

@@ -426,7 +426,7 @@ def search():
     user_conditions = [
         models.User.firstname.like(f"%{term}%") for term in search_terms
     ] + [models.User.lastname.like(f"%{term}%") for term in search_terms
-         ] + [models.User.email.like(f"%{term}%") for term in search_terms]
+        ] + [models.User.email.like(f"%{term}%") for term in search_terms]
     recipe_conditions = [
         models.Recipe.name.like(f"%{term}%") for term in search_terms
     ] + [models.Recipe.steps.like(f"%{term}%") for term in search_terms] + [

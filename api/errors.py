@@ -32,7 +32,8 @@ def invalid_authentication_details(error):
 @app.errorhandler(403)
 def permission_denied(error):
     """ Handles errors resulting from insufficient permissions to perform a task """
-    return make_response(jsonify({"errors": ["You do not have enough permissions to perform this task"]}), 403)
+    return make_response(jsonify({
+        "errors": ["You do not have enough permissions to perform this task"]}), 403)
 
 
 @app.errorhandler(ValidationError)
@@ -43,6 +44,7 @@ def handle_validation_failure(error):
 
 @app.errorhandler(models.UserNotFoundError)
 def handle_user_not_found_error(error):
+    """ Handles user not found errors """
     return make_response(jsonify({"errors": [error.args[0]]}), 404)
 
 
@@ -50,16 +52,23 @@ def handle_user_not_found_error(error):
 @app.errorhandler(TokenExpiredError)
 @app.errorhandler(TokenError)
 def handle_token_errors(error):
+    """ Handles authentication token errors"""
     return make_response(jsonify({"errors": [error.args[0]]}), 401)
 
 
 @app.errorhandler(500)
 def handle_server_error(error):
     """ Handles internal server errors"""
-    return make_response(jsonify({"errors": ["Server encountered an error. Please try again later"]}), 500)
+    return make_response(jsonify({
+        "errors": ["Server encountered an error. Please try again later"]}), 500)
 
 
 @app.errorhandler(405)
 def handle_method_not_allowed(error):
     """ Handles method not allowed error """
-    return make_response(jsonify({"errors": ["The method you are trying on the end point is not allowed. Please try with a correct method"]}), 405)
+    return make_response(jsonify({
+        "errors":[
+            "The method you are trying on the end po\
+            int is not allowed. Please try with a correct method",
+            ]
+    }), 405)
