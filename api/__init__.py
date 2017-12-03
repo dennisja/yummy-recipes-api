@@ -9,6 +9,6 @@ app = Flask(__name__)
 app.config.from_object(configs.get("development"))
 db = SQLAlchemy(app)
 cors = CORS(app)
-
+BASE_URL = "/yummy/api/v1.0/"
 # imports added here to avoid circular import errors
 from api import models, auth, routes, errors

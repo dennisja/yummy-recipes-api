@@ -9,6 +9,8 @@ from api.helpers import Secure, format_data
 from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required,\
                             user_must_own_recipe,user_must_own_recipe_category
+from api import BASE_URL
+
 
 
 @app.route("/")
@@ -19,7 +21,7 @@ def home_page():
 
 
 # recipe category end point
-@app.route("/yummy/api/v1.0/recipe_categories/", methods=["POST"])
+@app.route(f"{BASE_URL}recipe_categories/", methods=["POST"])
 @json_data_required
 @auth_token_required
 def add_recipe_category(user):
@@ -56,7 +58,7 @@ def add_recipe_category(user):
 
 
 @app.route(
-    "/yummy/api/v1.0/recipe_categories/<int:category_id>", methods=["PUT"])
+    f"{BASE_URL}recipe_categories/<int:category_id>", methods=["PUT"])
 @json_data_required
 @auth_token_required
 @user_must_own_recipe_category
@@ -95,7 +97,7 @@ def edit_recipe_category(user, recipe_cat, category_id):
 
 
 @app.route(
-    "/yummy/api/v1.0/recipe_categories/<int:category_id>", methods=["DELETE"])
+    f"{BASE_URL}recipe_categories/<int:category_id>", methods=["DELETE"])
 @auth_token_required
 @user_must_own_recipe_category
 def delete_recipe_category(user, recipe_cat, category_id):
@@ -105,7 +107,7 @@ def delete_recipe_category(user, recipe_cat, category_id):
     return jsonify({"message": "Recipe Category successfully deleted"}), 200
 
 
-@app.route("/yummy/api/v1.0/recipe_categories/", methods=["GET"])
+@app.route(f"{BASE_URL}recipe_categories/", methods=["GET"])
 @auth_token_required
 def get_all_user_recipe_categories(user):
     """ Gets all user recipe categories """
@@ -123,7 +125,7 @@ def get_all_user_recipe_categories(user):
 
 
 @app.route(
-    "/yummy/api/v1.0/recipe_categories/<int:category_id>", methods=["GET"])
+    f"{BASE_URL}recipe_categories/<int:category_id>", methods=["GET"])
 @auth_token_required
 def get_recipe_category(user, category_id):
     """ Gets a recipe categories """
@@ -142,7 +144,7 @@ def get_recipe_category(user, category_id):
 
 
 @app.route(
-    "/yummy/api/v1.0/recipe_categories/<int:category_id>/recipes/",
+    f"{BASE_URL}recipe_categories/<int:category_id>/recipes/",
     methods=["GET"])
 @auth_token_required
 def get_all_recipes_in_a_category(user, category_id):
@@ -158,7 +160,7 @@ def get_all_recipes_in_a_category(user, category_id):
 
 
 # recipe end points
-@app.route("/yummy/api/v1.0/recipes/", methods=["POST"])
+@app.route(f"{BASE_URL}recipes/", methods=["POST"])
 @json_data_required
 @auth_token_required
 def add_recipe(user):
@@ -212,7 +214,7 @@ def add_recipe(user):
     }
 
 
-@app.route("/yummy/api/v1.0/recipes/<int:recipe_id>", methods=["PUT"])
+@app.route(f"{BASE_URL}recipes/<int:recipe_id>", methods=["PUT"])
 @json_data_required
 @auth_token_required
 @user_must_own_recipe
@@ -271,7 +273,7 @@ def edit_a_recipe(user, recipe, recipe_id):
     }), 200
 
 
-@app.route("/yummy/api/v1.0/recipes/<int:recipe_id>", methods=["PATCH"])
+@app.route(f"{BASE_URL}recipes/<int:recipe_id>", methods=["PATCH"])
 @auth_token_required
 @user_must_own_recipe
 def publish_recipe(user, recipe, recipe_id):
@@ -285,7 +287,7 @@ def publish_recipe(user, recipe, recipe_id):
     })
 
 
-@app.route("/yummy/api/v1.0/recipes/<int:recipe_id>", methods=["DELETE"])
+@app.route(f"{BASE_URL}recipes/<int:recipe_id>", methods=["DELETE"])
 @auth_token_required
 @user_must_own_recipe
 def delete_recipe(user, recipe, recipe_id):
@@ -294,7 +296,7 @@ def delete_recipe(user, recipe, recipe_id):
     return jsonify({"message": "Successfully deleted a recipe"})
 
 
-@app.route("/yummy/api/v1.0/recipes/", methods=["GET"])
+@app.route(f"{BASE_URL}recipes/", methods=["GET"])
 @auth_token_required
 def get_all_user_recipes(user):
     """ Gets user recipes """
@@ -303,7 +305,7 @@ def get_all_user_recipes(user):
     }), 200
 
 
-@app.route("/yummy/api/v1.0/recipes/<int:recipe_id>", methods=["GET"])
+@app.route(f"{BASE_URL}recipes/<int:recipe_id>", methods=["GET"])
 @auth_token_required
 def get_recipe(user, recipe_id):
     """ Gets a single recipe """
@@ -321,7 +323,7 @@ def get_recipe(user, recipe_id):
 
 
 # user end points
-@app.route("/yummy/api/v1.0/users/", methods=["PUT"])
+@app.route(f"{BASE_URL}users/", methods=["PUT"])
 @json_data_required
 @auth_token_required
 def edit_user_details(user):
@@ -355,7 +357,7 @@ def edit_user_details(user):
     }
 
 
-@app.route("/yummy/api/v1.0/users/", methods=["PATCH"])
+@app.route(f"{BASE_URL}users/", methods=["PATCH"])
 @json_data_required
 @auth_token_required
 def change_user_password(user):
@@ -378,7 +380,7 @@ def change_user_password(user):
     return jsonify({"message": "Password Changed Successfully"}), 200
 
 
-@app.route("/yummy/api/v1.0/users/", methods=["GET"])
+@app.route(f"{BASE_URL}users/", methods=["GET"])
 def get_all_registered_users():
     """ Gets all the registered users """
     users = models.User.query.all()
@@ -390,7 +392,7 @@ def get_all_registered_users():
     }), 200
 
 
-@app.route("/yummy/api/v1.0/users/<id>/", methods=["GET"])
+@app.route(f"{BASE_URL}users/<id>/", methods=["GET"])
 def get_user(id):
     """ Gets user details """
     user_id = Secure.decrypt_user_id(id)
@@ -401,7 +403,7 @@ def get_user(id):
 
 
 # search end point
-@app.route("/yummy/api/v1.0/search")
+@app.route(f"{BASE_URL}search")
 def search():
     """ Provides functionality for searching for a recipes, categories and registered users"""
     if not request.args:

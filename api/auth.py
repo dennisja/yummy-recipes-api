@@ -5,9 +5,10 @@ from flask import request, jsonify, abort
 from api import app, models
 from api.validator import ValidateUser
 from api.helpers import Secure
+from api import BASE_URL
 
 
-@app.route("/yummy/api/v1.0/auth/register/", methods=["POST"])
+@app.route(f"{BASE_URL}auth/register/", methods=["POST"])
 def register_user():
     """ Registers a yummy recipes user """
     if not request.get_json():
@@ -25,20 +26,25 @@ def register_user():
     existing_user = models.User.query.filter_by(
         email=request_data["email"]).first()
     if existing_user:
-        return jsonify({"errors": [f"Email address \'{request_data['email']}\' already in use"]}
-                      ), 422
+        return jsonify({
+            "errors":
+            [f"Email address \'{request_data['email']}\' already in use"]
+        }), 422
 
     # register the user
     user = models.User(request_data["email"], request_data["firstname"],
                        request_data["lastname"], request_data["password"])
     user.save_user()
 
-    return jsonify(
-        {"messages": ["You have been successfully registered and you can now login"],
-         "data": user.user_details}), 201
+    return jsonify({
+        "messages":
+        ["You have been successfully registered and you can now login"],
+        "data":
+        user.user_details
+    }), 201
 
 
-@app.route("/yummy/api/v1.0/auth/login/", methods=["POST"])
+@app.route(f"{BASE_URL}auth/login/", methods=["POST"])
 def login_user():
     """ The end point is used to login a user """
     auth_details = request.authorization
@@ -48,8 +54,11 @@ def login_user():
     # validate sent details
     validation_errors = ValidateUser.validate_user_login(auth_details)
     if validation_errors:
-        return jsonify({"errors": validation_errors}), 401, {
-            "WWW-Authenticate": "Basic realm='Invalid login credentials'"}
+        return jsonify({
+            "errors": validation_errors
+        }), 401, {
+            "WWW-Authenticate": "Basic realm='Invalid login credentials'"
+        }
 
     # check if a user exists
     user = models.User.query.filter_by(email=auth_details["username"]).first()
@@ -60,8 +69,15 @@ def login_user():
     # if user password is correct
     if user.verify_password(auth_details["password"]):
         access_token = Secure.generate_auth_token(user.id)
-        return jsonify({"message": "Successfully logged in", "token": access_token}), 200
+        return jsonify({
+            "message": "Successfully logged in",
+            "token": access_token
+        }), 200
         # generate and return the token
 
-    return jsonify({"errors": ["Invalid email and password combination"]}), 401, {
-        "WWW-Authenticate": "Basic realm='Invalid email and password combination'"}
+    return jsonify({
+        "errors": ["Invalid email and password combination"]
+    }), 401, {
+        "WWW-Authenticate":
+        "Basic realm='Invalid email and password combination'"
+    }
