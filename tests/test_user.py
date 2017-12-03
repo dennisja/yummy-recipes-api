@@ -271,7 +271,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn("users", response.data.decode())
         self.assertIn(self.user_details1["firstname"], response.data.decode())
         self.assertIn(self.user_details2["firstname"], response.data.decode())
-    
+
     def test_returns_user_not_found_if_no_users_exist(self):
         """ test if no user found is returned if no registered users """
         response = self.test_client().get("/yummy/api/v1.0/users/")

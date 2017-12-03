@@ -173,7 +173,7 @@ def add_recipe(user):
 
     # check if the supplied recipe category exists
     recipe_cat = models.RecipeCategory.query.filter_by(
-        id=recipe_data.get("category")).first()
+        id=format_data(recipe_data.get("category"))).first()
     if not recipe_cat:
         return jsonify({
             "errors":
@@ -189,7 +189,7 @@ def add_recipe(user):
 
     # check if a recipe with the same name exists in the same category and by the same user
     recipe_exists = models.Recipe.query.filter_by(
-        name=recipe_data.get("name"),
+        name=format_data(recipe_data.get("name")),
         owner=user.id,
         category_id=recipe_data.get("category")).first()
     if recipe_exists:
@@ -203,7 +203,7 @@ def add_recipe(user):
 
     # add the recipe
     recipe = models.Recipe(
-        recipe_data.get("name"), recipe_data.get("steps"),
+        format_data(recipe_data.get("name")), recipe_data.get("steps"),
         recipe_data.get("ingredients"), recipe_data.get("category"), user.id)
     recipe.save_recipe()
     return jsonify({
@@ -235,7 +235,7 @@ def edit_a_recipe(user, recipe, recipe_id):
 
     # check if the supplied recipe category exists
     recipe_cat = models.RecipeCategory.query.filter_by(
-        id=recipe_data.get("category")).first()
+        id=format_data(recipe_data.get("category"))).first()
     if not recipe_cat:
         return jsonify({
             "errors":
@@ -251,7 +251,7 @@ def edit_a_recipe(user, recipe, recipe_id):
     ''' check whether the new name does not belong to any other recipe by
         the same user in the same category '''
     recipe_exists = models.Recipe.query.filter_by(
-        name=recipe_data.get("name"),
+        name=format_data(recipe_data.get("name")),
         owner=user.id,
         category_id=recipe_data.get("category")).first()
 

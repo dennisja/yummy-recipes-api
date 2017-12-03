@@ -9,7 +9,7 @@ from flask import url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # application specific modules
-from api.helpers import Secure
+from api.helpers import Secure, format_data
 from api import db
 
 
@@ -64,12 +64,19 @@ class User(db.Model):
     def user_details(self):
         """ Returns the user json representation """
         user_details = {
-            "id": self.id,
-            "firstname": self.firstname,
-            "lastname": self.lastname,
-            "email": self.email,
-            "mobile": self.mobile,
-            "url": url_for("get_user", id=Secure.encrypt_user_id(self.id), _external=True)
+            "id":
+            self.id,
+            "firstname":
+            self.firstname,
+            "lastname":
+            self.lastname,
+            "email":
+            self.email,
+            "mobile":
+            self.mobile,
+            "url":
+            url_for(
+                "get_user", id=Secure.encrypt_user_id(self.id), _external=True)
         }
         return user_details
 
@@ -86,15 +93,18 @@ class Recipe(db.Model):
     name = db.Column(db.String(200), nullable=False)
     steps = db.Column(db.String(1000))
     ingredients = db.Column(db.String(500))
-    category_id = db.Column(db.Integer, db.ForeignKey(
-        "recipe_categories.id"), nullable=False)
+    category_id = db.Column(
+        db.Integer, db.ForeignKey("recipe_categories.id"), nullable=False)
     image = db.Column(db.String(200))
     privacy = db.Column(db.Integer, default=1)
     favourite = db.Column(db.Integer, default=0)
-    created = db.Column(db.DateTime, nullable=False,
-                        default=db.func.current_timestamp())
-    edited = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp(),
-                       onupdate=db.func.current_timestamp())
+    created = db.Column(
+        db.DateTime, nullable=False, default=db.func.current_timestamp())
+    edited = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp())
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     def __init__(self, name, steps, ingredients, category_id, owner_id):
@@ -135,7 +145,7 @@ class Recipe(db.Model):
 
     def edit_recipe(self, recipe_data):
         """ Edits a recipe """
-        self.name = recipe_data.get("name", self.name)
+        self.name = format_data(recipe_data.get("name", self.name))
         self.steps = recipe_data.get("steps", self.steps)
         self.ingredients = recipe_data.get("ingredients", self.ingredients)
         self.category_id = recipe_data.get("category", self.category_id)
@@ -153,13 +163,19 @@ class RecipeCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     owner = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False,
-                        default=db.func.current_timestamp())
-    edited = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp(),
-                       onupdate=db.func.current_timestamp())
+    created = db.Column(
+        db.DateTime, nullable=False, default=db.func.current_timestamp())
+    edited = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp())
 
     recipes = db.relationship(
-        "Recipe", backref="recipe_category", lazy="dynamic", cascade="all, delete-orphan")
+        "Recipe",
+        backref="recipe_category",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
 
     def __init__(self, name, owner):
         """ RecipeCategory object initializer """
@@ -180,12 +196,19 @@ class RecipeCategory(db.Model):
     def recipe_cat_details(self):
         """ Returns a dictionary containing details about a recipe category """
         return {
-            "id": self.id,
-            "name": self.name,
-            "owner_details": self.creator.user_details,
-            "created": self.created,
-            "edited": self.edited,
-            "url": url_for("get_recipe_category", category_id=self.id, _external=True)
+            "id":
+            self.id,
+            "name":
+            self.name,
+            "owner_details":
+            self.creator.user_details,
+            "created":
+            self.created,
+            "edited":
+            self.edited,
+            "url":
+            url_for(
+                "get_recipe_category", category_id=self.id, _external=True)
         }
 
     def __repr__(self):
