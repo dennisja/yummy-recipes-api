@@ -1,4 +1,5 @@
-"""This is the tests module
+"""This is the tests module, 
+It has methods and variables to ease testing of all functionality in the api
 The module has application specific tests
 """
 # standard lib imports
@@ -121,6 +122,7 @@ class ApiBasicsTestCase(unittest.TestCase):
         return self.login_user(user_login)
 
     def register_login_delete_user(self):
+        """ Registers, logs in and deletes a user """
         response = self.register_and_login_user()
         login_token = self.get_token_from_response(response)
         user = User.query.get(1)

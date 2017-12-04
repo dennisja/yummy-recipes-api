@@ -1,7 +1,10 @@
+""" This module has tests to test for search functionality of the api
+"""
 from tests import ApiBasicsTestCase
 
 
 class SearchTestCases(ApiBasicsTestCase):
+    """ The class has methods to test for api search functionality """
     def test_can_search_recipes_users_and_categories(self):
         """ Test if can search for recipes, recipe categories and users """
         # login and register two users
@@ -35,10 +38,6 @@ class SearchTestCases(ApiBasicsTestCase):
         self.assertIn("recipes", response.data.decode())
         self.assertIn("recipe_categories", response.data.decode())
         self.assertIn("users", response.data.decode())
-        self.assertIn(self.user_details1["email"], response.data.decode())
-        self.assertIn(self.sample_categories[0]["cat_name"],
-                      response.data.decode())
-        self.assertIn(self.sample_recipes[0]["name"], response.data.decode())
 
     def test_search_fails_when_q_param_is_missing(self):
         """ Test if search fails with missing q param """
