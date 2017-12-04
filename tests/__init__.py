@@ -120,6 +120,14 @@ class ApiBasicsTestCase(unittest.TestCase):
         self.register_user(user_reg)
         return self.login_user(user_login)
 
+    def register_login_delete_user(self):
+        response = self.register_and_login_user()
+        login_token = self.get_token_from_response(response)
+        user = User.query.get(1)
+        db.session.delete(user)
+        db.session.commit()
+        return login_token
+
     def get_response_on_change_password(self,
                                         current="wrongpassword",
                                         newpassword="newpassword",

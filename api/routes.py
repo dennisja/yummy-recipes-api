@@ -12,7 +12,6 @@ from api.decorators import auth_token_required, json_data_required,\
 from api import BASE_URL
 
 
-
 @app.route("/")
 def home_page():
     """ Redirects to the API documentation"""
@@ -57,8 +56,7 @@ def add_recipe_category(user):
     }
 
 
-@app.route(
-    f"{BASE_URL}recipe_categories/<int:category_id>", methods=["PUT"])
+@app.route(f"{BASE_URL}recipe_categories/<int:category_id>", methods=["PUT"])
 @json_data_required
 @auth_token_required
 @user_must_own_recipe_category
@@ -124,8 +122,7 @@ def get_all_user_recipe_categories(user):
     })
 
 
-@app.route(
-    f"{BASE_URL}recipe_categories/<int:category_id>", methods=["GET"])
+@app.route(f"{BASE_URL}recipe_categories/<int:category_id>", methods=["GET"])
 @auth_token_required
 def get_recipe_category(user, category_id):
     """ Gets a recipe categories """
@@ -144,8 +141,7 @@ def get_recipe_category(user, category_id):
 
 
 @app.route(
-    f"{BASE_URL}recipe_categories/<int:category_id>/recipes/",
-    methods=["GET"])
+    f"{BASE_URL}recipe_categories/<int:category_id>/recipes/", methods=["GET"])
 @auth_token_required
 def get_all_recipes_in_a_category(user, category_id):
     """ Gets user recipes in a particular category """
@@ -279,10 +275,23 @@ def edit_a_recipe(user, recipe, recipe_id):
 def publish_recipe(user, recipe, recipe_id):
     """ Publishes or un publishes a recipe """
     # publish the recipe
-    recipe.privacy = 0
+    if "action" not in request.args:
+        return jsonify({
+            "erros":
+            ["Action not specified. It can either be publish or unpublish"]
+        }), 400
+
+    action = str(request.args.get("action")).strip().lower()
+    if action not in ("publish", "unpublish",):
+        return jsonify({
+            "errors": ["The option you are trying is not supported"]
+        }), 400
+
+    recipe.privacy = 0 if action == "publish" else 1
+    suffix = "Un " if action == "publish" else ""
     db.session.commit()
     return jsonify({
-        "message": "Published recipe",
+        "message": f"{suffix}Published recipe",
         "recipe": recipe.recipe_details
     })
 
@@ -381,7 +390,8 @@ def change_user_password(user):
 
 
 @app.route(f"{BASE_URL}users/", methods=["GET"])
-def get_all_registered_users():
+@auth_token_required
+def get_all_registered_users(user):
     """ Gets all the registered users """
     users = models.User.query.all()
     if not users:
@@ -393,7 +403,8 @@ def get_all_registered_users():
 
 
 @app.route(f"{BASE_URL}users/<id>/", methods=["GET"])
-def get_user(id):
+@auth_token_required
+def get_user(user, id):
     """ Gets user details """
     user_id = Secure.decrypt_user_id(id)
     if user_id:
@@ -404,7 +415,8 @@ def get_user(id):
 
 # search end point
 @app.route(f"{BASE_URL}search")
-def search():
+@auth_token_required
+def search(user):
     """ Provides functionality for searching for a recipes, categories and registered users"""
     if not request.args:
         return jsonify({
@@ -428,7 +440,7 @@ def search():
     user_conditions = [
         models.User.firstname.like(f"%{term}%") for term in search_terms
     ] + [models.User.lastname.like(f"%{term}%") for term in search_terms
-        ] + [models.User.email.like(f"%{term}%") for term in search_terms]
+         ] + [models.User.email.like(f"%{term}%") for term in search_terms]
     recipe_conditions = [
         models.Recipe.name.like(f"%{term}%") for term in search_terms
     ] + [models.Recipe.steps.like(f"%{term}%") for term in search_terms] + [

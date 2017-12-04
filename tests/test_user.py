@@ -262,11 +262,14 @@ class UserTestCases(ApiBasicsTestCase):
     def test_retrieving_all_users(self):
         """ tests retrieving all user data """
         # register users
-        reg_responses = [
-            self.register_user(self.user_details1),
-            self.register_user(self.user_details2)
-        ]
-        response = self.test_client().get("/yummy/api/v1.0/users/")
+        self.register_user(self.user_details1)
+        self.register_user(self.user_details2)
+        login_token = self.get_token_from_response(
+            self.login_user(self.login_details1))
+        response = self.test_client().get(
+            "/yummy/api/v1.0/users/", headers={
+                "x-access-token": login_token
+            })
         self.assertEqual(response.status_code, 200)
         self.assertIn("users", response.data.decode())
         self.assertIn(self.user_details1["firstname"], response.data.decode())
@@ -274,24 +277,40 @@ class UserTestCases(ApiBasicsTestCase):
 
     def test_returns_user_not_found_if_no_users_exist(self):
         """ test if no user found is returned if no registered users """
-        response = self.test_client().get("/yummy/api/v1.0/users/")
+        login_token = self.register_login_delete_user()
+        response = self.test_client().get(
+            "/yummy/api/v1.0/users/", headers={
+                "x-access-token": login_token
+            })
         self.assertEqual(response.status_code, 404)
-        self.assertIn("No user found", response.data.decode())
+        self.assertIn("User not found", response.data.decode())
 
     def test_retrieving_single_user_data(self):
         """ tests the end point that retrieves single user data """
         # register a user
         reg_response = self.register_user(self.user_details1)
+        login_response = self.login_user(self.login_details1)
         user_url = json.loads(reg_response.data.decode())["data"]["url"]
 
         # access registered user
-        user_response = self.test_client().get(user_url)
+        user_response = self.test_client().get(
+            user_url,
+            headers={
+                "x-access-token": self.get_token_from_response(login_response)
+            })
         self.assertEqual(user_response.status_code, 200)
         self.assertIn(self.user_details1["email"], user_response.data.decode())
 
     def test_cant_get_single_user_with_invalid_id(self):
         """ tests whether getting a user with an ivalid id fails """
+        login_response = self.register_and_login_user()
+        login_token = self.get_token_from_response(login_response)
+
         # try using an invalid public id
-        response = self.test_client().get("/yummy/api/v1.0/users/1/")
+        response = self.test_client().get(
+            "/yummy/api/v1.0/users/1/",
+            headers={
+                "x-access-token": login_token
+            })
         self.assertEqual(response.status_code, 400)
         self.assertIn("Request not Understood", response.data.decode())
