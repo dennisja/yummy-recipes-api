@@ -9,14 +9,14 @@ from tests import ApiBasicsTestCase
 class UserTestCases(ApiBasicsTestCase):
     """ Has methods to test for user actions """
 
-    def test_user_registration_fails_when_no_data_is_sent(self):
+    def test_no_data(self):
         """ tests if user registration fails if no data is sent """
         response = self.test_client().post("/yummy/api/v1.0/auth/register/")
         response_data = json.loads(response.data.decode("utf-8"))
         self.assertEqual(response.status_code, 400)
         self.assertTrue("Request not Understood" in response_data["errors"])
 
-    def test_user_registration_fails_if_incomplete_data_is_sent(self):
+    def test_incomplete_data(self):
         """ tests if user registration fails if incomplete data is sent """
         user_data = self.user_details1
         user_data.pop("password")
@@ -28,7 +28,7 @@ class UserTestCases(ApiBasicsTestCase):
             "Validation failure: Check that you sent all the required data and try again",
             str(response.data.decode("utf-8")))
 
-    def test_user_registration_fails_if_invalid_data_is_sent(self):
+    def test_invalid_data(self):
         """ test whther user registration fails if invalid data is sent"""
         invalid_data = dict(self.user_details1)
         invalid_data["firstname"] = "g56"
@@ -44,7 +44,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn("Password must match Confirm Password",
                       response.data.decode())
 
-    def test_user_can_register_if_correct_data_is_sent(self):
+    def test_register_user(self):
         """ test can register a user with invalid data """
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
@@ -58,7 +58,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn(self.user_details1["firstname"], response_string)
         self.assertIn(self.user_details1["lastname"], response_string)
 
-    def test_cant_register_user_who_already_exists(self):
+    def test_user_exists(self):
         """ test whether a user cant register with an alrerady used email"""
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
@@ -73,7 +73,7 @@ class UserTestCases(ApiBasicsTestCase):
             f"Email address \'{self.user_details1['email']}\' already in use",
             response_string)
 
-    def test_user_cant_login_if_some_data_is_missing(self):
+    def test_missing_login(self):
         """ test whether a user cant login if some data is missing """
         # try logging in with no login data sent
         response = self.test_client().post("/yummy/api/v1.0/auth/login/")
@@ -89,7 +89,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertEqual(response1.status_code, 400)
         self.assertIn("Missing login credentials", response1.data.decode())
 
-    def test_user_cant_login_if_sent_data_has_validation_errors(self):
+    def test_invalid_login(self):
         """ tests ehether login fails if invalid data is sent """
         headers = {
             "Authorization":
@@ -103,7 +103,7 @@ class UserTestCases(ApiBasicsTestCase):
                       response1.data.decode())
         self.assertIn("Invalid login credentials", str(response1.headers))
 
-    def test_user_cant_login_if_he_has_not_yet_registered(self):
+    def test_not_registered(self):
         """ tests whether login fails if user is not yet registered"""
         credentials = f"{self.user_details1['email']}:{self.user_details1['password']}"
         headers = {
@@ -117,7 +117,7 @@ class UserTestCases(ApiBasicsTestCase):
             f"Email '{self.user_details1['email']}' is not yet registered",
             response.data.decode())
 
-    def test_user_cant_login_if_he_supplies_a_wrong_password(self):
+    def test_wrong_password(self):
         """ test user cant login with long password """
         credentials = f"{self.user_details1['email']}:wrongpassword"
         headers = {
@@ -127,8 +127,8 @@ class UserTestCases(ApiBasicsTestCase):
 
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
-        reg_response = self.test_client().post(
-            "/yummy/api/v1.0/auth/register/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/auth/register/",
+                                **self.kwargs)
 
         # login user with wrong password
         login_response = self.test_client().post(
@@ -137,7 +137,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn("Invalid email and password combination",
                       str(login_response.headers))
 
-    def test_user_can_login_with_correct_credentials(self):
+    def test_correct_credentials(self):
         """ test user can login with correct credentials """
         credentials = f"{self.user_details1['email']}:{self.user_details1['password']}"
         headers = {
@@ -147,8 +147,8 @@ class UserTestCases(ApiBasicsTestCase):
 
         self.kwargs.setdefault("data", json.dumps(self.user_details1))
         # register a user
-        reg_response = self.test_client().post(
-            "/yummy/api/v1.0/auth/register/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/auth/register/",
+                                **self.kwargs)
 
         # login user with wrong password
         login_response = self.test_client().post(
@@ -158,7 +158,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertTrue(
             json.loads(login_response.data.decode())["token"] is not None)
 
-    def test_user_cant_edit_details_with_expired_token(self):
+    def test_expired_token(self):
         """ tests whether a user cant edit details with an expired token """
         self.register_user(self.user_details1)
         self.kwargs["data"] = json.dumps({
@@ -172,7 +172,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertEqual(response.status_code, 401)
         # self.assertIn("The token has expired", response.data.decode())
 
-    def test_user_cant_edit_details_with_no_token(self):
+    def test_no_token(self):
         """ test cant edit user detals if the auth token is absent """
         self.register_user(self.user_details1)
         self.kwargs["data"] = json.dumps({
@@ -185,7 +185,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertIn("The access token is required", response.data.decode())
 
-    def test_user_can_edit_his_own_details(self):
+    def test_edit_profile(self):
         """ test whether user cant edit another user's details """
         # register two users
         self.register_user(self.user_details1)
@@ -203,8 +203,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn("All changes where applied successfully",
                       response.data.decode())
 
-    def test_user_cant_change_email_to_existing_email_which_belongs_to_another_user(
-            self):
+    def test_edit_email(self):
         """ test whether editing email to another user's email fails"""
         # register two users, login them and get their login tokens
         reg_responses = [
@@ -236,7 +235,7 @@ class UserTestCases(ApiBasicsTestCase):
             f"The email \'{self.user_details2['email']}\' is already in use",
             data)
 
-    def test_cant_change_password_to_similar_password(self):
+    def test_similar_password(self):
         """ tests if changing password to a similar password fails"""
         response = self.get_response_on_change_password(
             current="password",
@@ -246,14 +245,14 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn("Current Password must not be equal to New Password",
                       str(response.data))
 
-    def test_user_cant_change_password_if_current_password_is_wrong(self):
+    def test_wrong_pwd(self):
         """ tests changing """
         response = self.get_response_on_change_password()
         self.assertEqual(response.status_code, 403)
         self.assertIn("The current password supplied is wrong",
                       response.data.decode())
 
-    def test_user_can_change_his_password(self):
+    def test_change_password(self):
         """ tests whether user can change his/her password with right credentials """
         response = self.get_response_on_change_password(current="password")
         self.assertEqual(response.status_code, 200)
@@ -275,7 +274,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertIn(self.user_details1["firstname"], response.data.decode())
         self.assertIn(self.user_details2["firstname"], response.data.decode())
 
-    def test_returns_user_not_found_if_no_users_exist(self):
+    def test_no_user_exist(self):
         """ test if no user found is returned if no registered users """
         login_token = self.register_login_delete_user()
         response = self.test_client().get(
@@ -285,7 +284,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertIn("User not found", response.data.decode())
 
-    def test_retrieving_single_user_data(self):
+    def test_user_data(self):
         """ tests the end point that retrieves single user data """
         # register a user
         reg_response = self.register_user(self.user_details1)
@@ -301,7 +300,7 @@ class UserTestCases(ApiBasicsTestCase):
         self.assertEqual(user_response.status_code, 200)
         self.assertIn(self.user_details1["email"], user_response.data.decode())
 
-    def test_cant_get_single_user_with_invalid_id(self):
+    def test_invalid_id(self):
         """ tests whether getting a user with an ivalid id fails """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)

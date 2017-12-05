@@ -22,7 +22,7 @@ class RecipeTestCases(ApiBasicsTestCase):
         self.assertIn("Successfully added recipe", response.data.decode())
         self.assertIn(self.sample_recipes[0]["steps"], response.data.decode())
 
-    def test_cant_add_recipe_in_a_category_that_doesnot_exist(self):
+    def test_absent_category(self):
         """ tests that a user cannot add a recipe in a category that doesnot exist """
         # register and login user
         login_response = self.register_and_login_user()
@@ -34,7 +34,7 @@ class RecipeTestCases(ApiBasicsTestCase):
             "Trying to add a recipe to a category that does not exist",
             response.data.decode())
 
-    def test_cant_add_recipe_to_a_category_that_belongs_to_another_user(self):
+    def test_forbidden_category(self):
         """ tests that a user cant add categories to a category that belongs to another user"""
         # register and login two users
         login_responses = [
@@ -57,7 +57,7 @@ class RecipeTestCases(ApiBasicsTestCase):
             "Trying to add a recipe to a category that does not belong to you",
             response.data.decode())
 
-    def test_cant_add_recipe_in_a_category_with_a_recipe_of_same_name(self):
+    def test_same_category(self):
         """ tests whether a user cant add recipe with the same name in the same category """
         # register and login a user
         login_response = self.register_and_login_user()
@@ -66,7 +66,7 @@ class RecipeTestCases(ApiBasicsTestCase):
         # create a recipe category
         self.create_recipe_category(self.sample_categories[0], login_token)
         # add two recipes in the same category with the same name
-        response_one = self.create_recipe(self.sample_recipes[0], login_token)
+        self.create_recipe(self.sample_recipes[0], login_token)
         response_two = self.create_recipe(self.sample_recipes[0], login_token)
         # test if this fails
         self.assertEqual(response_two.status_code, 400)
@@ -74,7 +74,7 @@ class RecipeTestCases(ApiBasicsTestCase):
             "A recipe with the same name, by the same user already exists in the same category",
             response_two.data.decode())
 
-    def test_cant_add_recipe_when_invalid_data_is_supplied(self):
+    def test_invalid_data(self):
         """ tests recipe addition fails if invalid data is supplied """
         # register and login user
         login_response = self.register_and_login_user()
@@ -113,8 +113,9 @@ class RecipeTestCases(ApiBasicsTestCase):
         self.assertIn(self.sample_recipes[1]["steps"],
                       edit_response.data.decode())
 
-    def test_can_change_recipe_category_to_a_category_that_doesnot_exist(self):
-        """ Ensures that a user cannot change recipe category to an id of the recipe category that doesnot exist"""
+    def test_absent_category_edit(self):
+        """ Ensures that a user cannot change recipe category to an
+         id of the recipe category that doesnot exist"""
         # login and register user
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -134,9 +135,9 @@ class RecipeTestCases(ApiBasicsTestCase):
             "Trying to move a recipe to a category that does not exist",
             edit_response.data.decode())
 
-    def test_can_edit_recipe_category_to_a_category_that_doesnot_belong_to_you(
-            self):
-        """ Ensures that user cannot change recipe category to a category id that belongs to another user"""
+    def test_forbidden_category_edits(self):
+        """ Ensures that user cannot change recipe category
+        to a category id that belongs to another user"""
         # register and login two users
         login_responses = [
             self.register_and_login_user(),
@@ -149,15 +150,12 @@ class RecipeTestCases(ApiBasicsTestCase):
         ]
 
         # create two recipe categories with different users
-        categories = [
-            self.create_recipe_category(self.sample_categories[0],
-                                        login_tokens[0]),
-            self.create_recipe_category(self.sample_categories[1],
-                                        login_tokens[1])
-        ]
+
+        self.create_recipe_category(self.sample_categories[0], login_tokens[0])
+        self.create_recipe_category(self.sample_categories[1], login_tokens[1])
+
         # create recipe with one user
-        recipe_response = self.create_recipe(self.sample_recipes[0],
-                                             login_tokens[0])
+        self.create_recipe(self.sample_recipes[0], login_tokens[0])
         # edit recipe specifying category of the other user
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
         self.sample_recipes[1]["category"] = 2
@@ -170,7 +168,7 @@ class RecipeTestCases(ApiBasicsTestCase):
             "Trying to move a recipe to a category that does not belong to you",
             edit_response.data.decode())
 
-    def test_can_only_edit_recipe_that_belongs_to_you(self):
+    def test_forbidden_recipe(self):
         """ ensures that a user can only edit a recipe belonging to him/her """
         # register and login two users
         login_responses = [
@@ -197,7 +195,7 @@ class RecipeTestCases(ApiBasicsTestCase):
             "You are trying to modify a recipe that does not belong to you",
             edit_response.data.decode())
 
-    def test_can_only_edit_recipe_that_exists(self):
+    def test_absent_recipe(self):
         """ ensures that a user can only edit a recipe that exists """
         # register and login a user
         login_response = self.register_and_login_user()
@@ -214,7 +212,7 @@ class RecipeTestCases(ApiBasicsTestCase):
         self.assertIn("Trying to access a recipe that does not exist",
                       edit_response.data.decode())
 
-    def test_can_publish_recipe(self):
+    def test_publish_recipe(self):
         """ ensures that user can publish a recipe """
         # register and login a user
         login_response = self.register_and_login_user()
@@ -233,7 +231,7 @@ class RecipeTestCases(ApiBasicsTestCase):
         self.assertTrue(publish_response.status_code, 200)
         self.assertIn("Published recipe", publish_response.data.decode())
 
-    def test_can_publish_another_users_recipe(self):
+    def test_publish_forbiden_recipe(self):
         """ Ensures that a user cannot publish another users recipe"""
         # login two users
         login_responses = [
@@ -282,7 +280,7 @@ class RecipeTestCases(ApiBasicsTestCase):
         self.assertIn("Successfully deleted a recipe",
                       delete_response.data.decode())
 
-    def test_can_only_delete_own_recipes(self):
+    def test_delete_forbiden_recipe(self):
         """ Ensure that a user can only delete his own recipes"""
         # register and login two users
         login_responses = [

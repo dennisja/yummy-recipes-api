@@ -23,15 +23,15 @@ class CategoryTestCases(ApiBasicsTestCase):
         self.assertIn("Successfully created recipe category",
                       response.data.decode())
 
-    def test_cant_add_recipe_category_that_already_exists(self):
+    def test_existing_recipe_category(self):
         """ tests whether a user cant add a category with the same name """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
 
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
         again_response = self.test_client().post(
             "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
         self.assertEqual(again_response.status_code, 400)
@@ -39,7 +39,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             "The Recipe Category you are trying to add already exists",
             again_response.data.decode())
 
-    def test_user_cant_add_category_if_invalid_data_is_sent(self):
+    def test_invalid_data(self):
         """ tests whether a user cant add category if invalid data is sent """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -52,7 +52,7 @@ class CategoryTestCases(ApiBasicsTestCase):
         self.assertIn("Category Name must be a minimum of 3 characters",
                       response.data.decode())
 
-    def test_user_can_edit_recipe_category(self):
+    def test_edit_recipe_category(self):
         """ tests if a user cant successfully edit a recipe category """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -60,8 +60,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
 
         # change category details
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
@@ -72,7 +72,7 @@ class CategoryTestCases(ApiBasicsTestCase):
                       edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 200)
 
-    def test_cant_edit_category_that_belongs_to_another_user(self):
+    def test_edit_other_category(self):
         """ Register and login two users """
         login_responses = [
             self.register_and_login_user(),
@@ -87,8 +87,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category using the first user
         self.kwargs["data"] = json.dumps({"cat_name": "This is new"})
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
         # try editing category details using the second user
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
@@ -100,7 +100,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 403)
 
-    def test_cant_edit_category_when_logged_out(self):
+    def test_edit_onlogout(self):
         """ tests if a user can only edit a category if logged in """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -108,8 +108,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
 
         # change category name to the same name
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
@@ -120,8 +120,7 @@ class CategoryTestCases(ApiBasicsTestCase):
                       edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 401)
 
-    def test_category_isnt_edited_if_current_and_new_category_names_are_similar(
-            self):
+    def test_different_names(self):
         """ tests if category isn't edited if new name is same as current name """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -141,7 +140,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 400)
 
-    def test_cant_edit_category_that_doesnot_exist(self):
+    def test_absent_category(self):
         """ tests if a user cant add a category that already exists """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -149,8 +148,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
 
         # change category details
         self.sample_categories[0]["cat_name"] = "New Recipe Edited"
@@ -162,7 +161,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             edit_response.data.decode())
         self.assertEqual(edit_response.status_code, 404)
 
-    def test_user_can_delete_recipe_category(self):
+    def test_delete_category(self):
         """ tests to see if a user can succesfully delete a category """
         login_response = self.register_and_login_user()
         login_token = self.get_token_from_response(login_response)
@@ -170,8 +169,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category
         self.kwargs["data"] = json.dumps(self.sample_categories[0])
         self.kwargs["headers"] = {"x-access-token": login_token}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
 
         # delete the category
         self.kwargs.pop("data")
@@ -181,7 +180,7 @@ class CategoryTestCases(ApiBasicsTestCase):
         self.assertIn("Recipe Category successfully deleted",
                       delete_response.data.decode())
 
-    def test_cant_delete_a_category_that_belongs_to_another_user(self):
+    def test_delete_other_category(self):
         """ test whether a user can only delete his/her own category """
         # register and login a user
         login_responses = [
@@ -197,8 +196,8 @@ class CategoryTestCases(ApiBasicsTestCase):
         # create category using the first user
         self.kwargs["data"] = json.dumps({"cat_name": "This is new"})
         self.kwargs["headers"] = {"x-access-token": login_tokens[0]}
-        response = self.test_client().post(
-            "/yummy/api/v1.0/recipe_categories/", **self.kwargs)
+        self.test_client().post("/yummy/api/v1.0/recipe_categories/",
+                                **self.kwargs)
         # try deleting category  using the second user
         self.kwargs.pop("data")
         self.kwargs["headers"] = {"x-access-token": login_tokens[1]}
@@ -209,7 +208,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             delete_response.data.decode())
         self.assertEqual(delete_response.status_code, 403)
 
-    def test_user_cant_delete_a_category_that_doesnot_exist(self):
+    def test_delete_absent_category(self):
         """ tests whether a user cannot delete a category of another user"""
         # register and login a user
         login_response = self.register_and_login_user()
@@ -224,7 +223,7 @@ class CategoryTestCases(ApiBasicsTestCase):
             "The recipe category you are trying to modify does not exist",
             delete_response.data.decode())
 
-    def test_can_get_all_user_categories(self):
+    def test_get_categories(self):
         """ tests whether a user can get his own categories """
         # register and login user
         login_response = self.register_and_login_user()
@@ -243,7 +242,7 @@ class CategoryTestCases(ApiBasicsTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Recipe Categories exists", response.data.decode())
 
-    def test_can_get_all_recipes_in_a_category(self):
+    def test_recipes_per_category(self):
         """ tests whether a user can get  all recipes in a category """
         # register and login user
         login_response = self.register_and_login_user()

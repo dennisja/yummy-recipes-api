@@ -282,7 +282,10 @@ def publish_recipe(user, recipe, recipe_id):
         }), 400
 
     action = str(request.args.get("action")).strip().lower()
-    if action not in ("publish", "unpublish",):
+    if action not in (
+            "publish",
+            "unpublish",
+    ):
         return jsonify({
             "errors": ["The option you are trying is not supported"]
         }), 400
@@ -459,10 +462,12 @@ def search(user):
 
     users = models.User.query.filter(or_(*user_conditions)).paginate(
         page, per_page, False)
-    recipes = models.Recipe.query.filter(or_(*recipe_conditions)).paginate(
-        page, per_page, False)
+    recipes = models.Recipe.query.filter(
+        or_(*recipe_conditions)).filter_by(owner=user.id).paginate(
+            page, per_page, False)
     categories = models.RecipeCategory.query.filter(
-        or_(*category_conditions)).paginate(page, per_page, False)
+        or_(*category_conditions)).filter_by(owner=user.id).paginate(
+            page, per_page, False)
 
     response_body = {
         "users": [each_user.user_details for each_user in users.items],
