@@ -5,7 +5,7 @@ from flask import jsonify, abort, request, redirect
 from sqlalchemy import or_
 
 from api import app, models, db
-from api.helpers import Secure, format_data, format_email
+from api.helpers import Secure, format_data, format_email, is_invalid_id
 from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required,\
                             user_must_own_recipe,user_must_own_recipe_category
@@ -409,11 +409,12 @@ def get_all_registered_users(user):
 @auth_token_required
 def get_user(user, id):
     """ Gets user details """
-    user_id = Secure.decrypt_user_id(id)
+    user_id = id
+    if is_invalid_id(user_id):
+        abort(400)
     if user_id:
         user = models.User.query.filter_by(id=user_id).first_or_404()
         return jsonify({"data": user.user_details})
-    abort(400)
 
 
 # search end point

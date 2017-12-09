@@ -76,7 +76,7 @@ class User(db.Model):
             self.mobile,
             "url":
             url_for(
-                "get_user", id=Secure.encrypt_user_id(self.id), _external=True)
+                "get_user", id=self.id, _external=True)
         }
         return user_details
 

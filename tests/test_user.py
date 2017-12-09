@@ -307,7 +307,7 @@ class UserTestCases(ApiBasicsTestCase):
 
         # try using an invalid public id
         response = self.test_client().get(
-            "/yummy/api/v1.0/users/1/",
+            "/yummy/api/v1.0/users/1hf/",
             headers={
                 "x-access-token": login_token
             })
