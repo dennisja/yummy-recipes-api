@@ -24,21 +24,9 @@ If you do not have virtualenv installed. Use the command below to install it
 pip install virtualenv
 ```
 ### Create a virtual environment using virtualenv
-For mac os or linux users
+For mac os, linux  and windows users
 ```
 $ virtualenv venv
-$ source venv/bin/activate
-```
-For windows users
-- If you are using windows command prompt
-```
-virtualenv venv
-cd venv/scripts && activate && cd ../..
-```
-- if you are using git bash
-```
-virtualenv venv
-source venv/scripts/activate
 ```
 
 ### Install the project dependancies
@@ -46,19 +34,42 @@ source venv/scripts/activate
 pip install -r requirements.txt
 ```
 
-## Set environment varibles
-### For windows users
-If you are using the in built windows command prompt
+### Activating the virtual environment and setting environment variables
+#### For windows users, you can activate the virtual environment by following the steps below
+- If you are using windows command prompt
+```
+cd venv/scripts && activate && cd ../..
+```
+- if you are using git bash
+```
+source venv/scripts/activate
+```
+##### After activating the virtual environment, you can set environment variables by running the commands below
+- If you are using the in built windows command prompt
 ```
 set YUMMY_TEST_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes
 set YUMMY_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes
 set YUMMY_SECRET_KEY="The secret key you prefer"
 ```
-### For mac os or linux users or if you are using cygwin or git bash on windows
+- if you are using cygwin or git bash on windows
 ```
 export YUMMY_TEST_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/test_yummy_recipes
 export YUMMY_DATABASE_URI=postgresql://postgres:mypassword@127.0.0.1:5432/yummy_recipes
 export YUMMY_SECRET_KEY="The secret key you prefer"
+```
+#### For mac os and linux, users activate virtual environment and set environment variables by running the command below
+```
+source .env
+```
+### Creating the databases
+For mac os and linux users, if you have postgres sql installed
+```
+$ createdb test_yummy_recipes
+$ createdb yummy_recipes
+```
+For windows users
+```
+Use pgadmin to create the databases before performing a migration
 ```
 
 ### Running database migrations
@@ -74,6 +85,15 @@ Make sure you are in the application root folder at the terminal and then run th
 python run.py
 ```
 
+## Running tests
+Using nosetests
+```
+nosetests --with-coverage
+```
+Using unitest
+```
+python -m unittest
+```
 ## End points available
 Method       | Path          | Role         | Access
 ------------ | ------------- | -------------| -------
@@ -82,17 +102,16 @@ POST |/yummy/api/v1.0/auth/login/ | Log in a user | PUBLIC
 PUT  |/yummy/api/v1.0/users/| Updates user details| PRIVATE
 PATCH| /yummy/api/v1.0/users/| Changes user password| PRIVATE
 GET| /yummy/api/v1.0/users/| Get details of all registered users| PRIVATE
-GET| /yummy/api/v1.0/users/<id>| Get details of a particular user| PRIVATE
+GET| /yummy/api/v1.0/users/&lt;int:id&gt;| Get details of a particular user| PRIVATE
 POST |/yummy/api/v1.0/recipe_categories/ | Helps user create a recipe category | PRIVATE
 GET| /yummy/api/v1.0/search| search for registered users, recipes, and recipe categories| PRIVATE
-PUT |/yummy/api/v1.0/recipe_categories/<int:category_id>| Helps a user edit existing category| PRIVATE
+PUT |/yummy/api/v1.0/recipe_categories/&lt;int:category_id&gt;| Helps a user edit existing category| PRIVATE
 GET |/yummy/api/v1.0/recipe_categories/ | Used to fetch a user recipe categories | PRIVATE
-GET |/yummy/api/v1.0/recipe_categories/<int:category_id> | Fetches recipe details of a single recipe  | PRIVATE
-DELETE |/yummy/api/v1.0/recipe_categories/<int:category_id>| Helps a user delete a recipe category | PRIVATE
+GET |/yummy/api/v1.0/recipe_categories/&lt;int:category_id&gt; | Fetches recipe details of a single recipe  | PRIVATE
+DELETE |/yummy/api/v1.0/recipe_categories/&lt;int:category_id&gt;| Helps a user delete a recipe category | PRIVATE
 POST |/yummy/api/v1.0/recipes/ | Helps user add a new recipe | PRIVATE
-PUT  |r/yummy/api/v1.0/recipes/<int:recipe_id> | Used to update recipe details | PRIVATE
-PATCH| /yummy/api/v1.0/recipes/<int:recipe_id>| Helps user to publish a recipe| PRIVATE
-DELETE |/yummy/api/v1.0/recipes/<int:recipe_id> | Helps user delete a recipe | PRIVATE
+PUT  |/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Used to update recipe details | PRIVATE
+PATCH| /yummy/api/v1.0/recipes/&lt;int:recipe_id&gt;| Helps user to publish a recipe| PRIVATE
+DELETE |/yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Helps user delete a recipe | PRIVATE
 GET| /yummy/api/v1.0/recipes/| Get all recipes created by a user| PRIVATE
-GET| /yummy/api/v1.0/recipes/<int:recipe_id> | Get details of a particular recipe created by a user| PRIVATE
-
+GET| /yummy/api/v1.0/recipes/&lt;int:recipe_id&gt; | Get details of a particular recipe created by a user| PRIVATE

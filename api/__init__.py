@@ -1,14 +1,14 @@
+""" this module creates an instance of our application """
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from config import configs
 from flask_cors import CORS
 
+from config import CONFIGS as configs
+
 app = Flask(__name__)
-app.config.from_object(configs.get("production"))
+app.config.from_object(configs.get("development"))
 db = SQLAlchemy(app)
 cors = CORS(app)
-
-
-from api import models, routes
-
-
+BASE_URL = "/yummy/api/v1.0/"
+# imports added here to avoid circular import errors
+from api import models, auth, routes, errors
