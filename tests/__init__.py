@@ -1,4 +1,4 @@
-"""This is the tests module, 
+"""This is the tests module,
 It has methods and variables to ease testing of all functionality in the api
 The module has application specific tests
 """
