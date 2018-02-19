@@ -363,7 +363,8 @@ def edit_user_details(user):
 
     db.session.commit()
     return jsonify({
-        "message": "All changes where applied successfully"
+        "message": "All changes where applied successfully",
+        "new_user_details": user.user_details
     }), 200, {
         "Location": user.user_details["url"]
     }
@@ -469,6 +470,8 @@ def search(user):
     categories = models.RecipeCategory.query.filter(
         or_(*category_conditions)).filter_by(owner=user.id).paginate(
             page, per_page, False)
+            
+    total_pages = max([users.pages, recipes.pages, categories.pages])
 
     response_body = {
         "users": [each_user.user_details for each_user in users.items],
@@ -485,7 +488,8 @@ def search(user):
         "total_results":
         users.total + recipes.total + categories.total,
         "search_term":
-        search_term
+        search_term,
+        "total_pages": total_pages
     }
     if page > 1:
         response_body["previous_page"] = page - 1
