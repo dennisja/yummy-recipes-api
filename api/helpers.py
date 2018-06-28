@@ -1,6 +1,8 @@
 """ The helpers module has helper classes and helper functions i.e.
 Secure class handles encrypting and decrypting of tokens and user ids
 format_data and format-email methods to ensure storage of uniform data"""
+import re
+
 from itsdangerous import URLSafeSerializer,\
                         TimedJSONWebSignatureSerializer as TimedSerializer, SignatureExpired,\
                         base64_decode, base64_encode
@@ -68,3 +70,7 @@ def format_data(data):
 def format_email(email):
     """ Formats email to ensure uniform storage of emails in the database """
     return str(email).strip().lower()
+
+def is_invalid_id(the_id):
+    """Checks whether a given id is valid"""
+    return re.search(r"\D+", the_id)

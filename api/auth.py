@@ -73,7 +73,8 @@ def login_user():
         access_token = Secure.generate_auth_token(user.id)
         return jsonify({
             "message": "Successfully logged in",
-            "token": access_token
+            "token": access_token,
+            "data": user.user_details
         }), 200
         # generate and return the token
 

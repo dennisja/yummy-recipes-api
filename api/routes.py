@@ -5,7 +5,7 @@ from flask import jsonify, abort, request, redirect
 from sqlalchemy import or_
 
 from api import app, models, db
-from api.helpers import Secure, format_data, format_email
+from api.helpers import Secure, format_data, format_email, is_invalid_id
 from api.validator import ValidateUser, ValidateRecipeCategory as ValidateCat, ValidateRecipe
 from api.decorators import auth_token_required, json_data_required,\
                             user_must_own_recipe,user_must_own_recipe_category
@@ -282,7 +282,10 @@ def publish_recipe(user, recipe, recipe_id):
         }), 400
 
     action = str(request.args.get("action")).strip().lower()
-    if action not in ("publish", "unpublish",):
+    if action not in (
+            "publish",
+            "unpublish",
+    ):
         return jsonify({
             "errors": ["The option you are trying is not supported"]
         }), 400
@@ -360,7 +363,8 @@ def edit_user_details(user):
 
     db.session.commit()
     return jsonify({
-        "message": "All changes where applied successfully"
+        "message": "All changes where applied successfully",
+        "new_user_details": user.user_details
     }), 200, {
         "Location": user.user_details["url"]
     }
@@ -406,11 +410,12 @@ def get_all_registered_users(user):
 @auth_token_required
 def get_user(user, id):
     """ Gets user details """
-    user_id = Secure.decrypt_user_id(id)
+    user_id = id
+    if is_invalid_id(user_id):
+        abort(400)
     if user_id:
         user = models.User.query.filter_by(id=user_id).first_or_404()
         return jsonify({"data": user.user_details})
-    abort(400)
 
 
 # search end point
@@ -459,10 +464,14 @@ def search(user):
 
     users = models.User.query.filter(or_(*user_conditions)).paginate(
         page, per_page, False)
-    recipes = models.Recipe.query.filter(or_(*recipe_conditions)).paginate(
-        page, per_page, False)
+    recipes = models.Recipe.query.filter(
+        or_(*recipe_conditions)).filter_by(owner=user.id).paginate(
+            page, per_page, False)
     categories = models.RecipeCategory.query.filter(
-        or_(*category_conditions)).paginate(page, per_page, False)
+        or_(*category_conditions)).filter_by(owner=user.id).paginate(
+            page, per_page, False)
+            
+    total_pages = max([users.pages, recipes.pages, categories.pages])
 
     response_body = {
         "users": [each_user.user_details for each_user in users.items],
@@ -479,7 +488,8 @@ def search(user):
         "total_results":
         users.total + recipes.total + categories.total,
         "search_term":
-        search_term
+        search_term,
+        "total_pages": total_pages
     }
     if page > 1:
         response_body["previous_page"] = page - 1

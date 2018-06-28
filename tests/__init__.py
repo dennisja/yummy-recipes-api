@@ -1,4 +1,4 @@
-"""This is the tests module, 
+"""This is the tests module,
 It has methods and variables to ease testing of all functionality in the api
 The module has application specific tests
 """
@@ -162,16 +162,16 @@ class ApiBasicsTestCase(unittest.TestCase):
 class AppTestCases(ApiBasicsTestCase):
     """ Tests application basic cases  """
 
-    def test_app_is_not_null(self):
+    def test_not_null(self):
         """Test if instance exists"""
         self.assertTrue(self.app is not None)
 
-    def test_app_is_using_test_database(self):
+    def test_database(self):
         """ Test if application is running in test mode """
         self.assertTrue(self.app.config["TESTING"])
         self.assertTrue(self.app.config["DEBUG"])
 
-    def test_invalid_method_on_endpoint(self):
+    def test_invalid_method(self):
         """ test server response on an invalid method on the access point"""
         response = self.test_client().post("/yummy/api/v1.0/users/")
         self.assertTrue(response.status_code == 405)

@@ -5,7 +5,7 @@ from tests import ApiBasicsTestCase
 
 class SearchTestCases(ApiBasicsTestCase):
     """ The class has methods to test for api search functionality """
-    def test_can_search_recipes_users_and_categories(self):
+    def test_search(self):
         """ Test if can search for recipes, recipe categories and users """
         # login and register two users
         login_responses = [
@@ -39,7 +39,7 @@ class SearchTestCases(ApiBasicsTestCase):
         self.assertIn("recipe_categories", response.data.decode())
         self.assertIn("users", response.data.decode())
 
-    def test_search_fails_when_q_param_is_missing(self):
+    def test_missing_q_param(self):
         """ Test if search fails with missing q param """
         # login and register two users
         login_responses = [
@@ -71,7 +71,7 @@ class SearchTestCases(ApiBasicsTestCase):
             "Check that you have supplied the search term and try again",
             response.data.decode())
 
-    def test_search_fails_when_all_get_param_are_missing(self):
+    def test_no_params(self):
         """ Test if search fails if all parameters in the query string are missing """
         # login and register two users
         login_responses = [
